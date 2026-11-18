@@ -44,3 +44,17 @@ export const updateContactStatus = (id: number, status: string) => request(`/adm
 export const saveSiteSettings = (data: Record<string, unknown>) => request("/admin/settings", "PATCH", data);
 
 export const publishHomePage = () => request('/admin/pages/home/publish', 'POST', {});
+
+export type AdminMediaAsset = { id: number; original_name: string; storage_name: string; mime_type: string; file_size: number; alt_text: string; created_at: string };
+export async function uploadAdminMedia(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("alt_text", file.name.replace(/\\.[^.]+$/, "").replace(/[-_]+/g, " "));
+  const headers: Record<string,string> = { Accept: "application/json" };
+  if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+  const response = await fetch("/api/admin/media", { method: "POST", headers, credentials: "same-origin", body: form });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) { const error = new Error(result.message || result.error || `HTTP ${response.status}`); Object.assign(error,{status:response.status,code:result.error}); throw error; }
+  return result as { ok: boolean; asset: AdminMediaAsset & { url: string } };
+}
+export async function deleteAdminMedia(id: number) { return request(`/admin/media/${id}`, "DELETE"); }
