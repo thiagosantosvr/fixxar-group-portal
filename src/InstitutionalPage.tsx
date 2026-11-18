@@ -18,8 +18,10 @@ export default function InstitutionalPage({ slug }: { slug: string }) {
     return () => { active = false; };
   }, [slug]);
   useEffect(() => {
-    if (page) { document.title = `${page.title} — FIXXAR GROUP`; }
-    else document.title = "FIXXAR GROUP";
+    document.title = page ? `${page.title} — FIXXAR GROUP` : "FIXXAR GROUP";
+    let description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!description) { description = document.createElement("meta"); description.name = "description"; document.head.appendChild(description); }
+    description.content = page?.content.summary || "Conheça o ecossistema FIXXAR GROUP.";
   }, [page]);
   return <main className="institutional-page">
     <header className="institutional-header"><a className="wordmark" href="/">FIXXAR<span>GROUP</span><i>X</i></a><a href="/" className="institutional-back"><ArrowLeft size={15}/> Página inicial</a></header>
