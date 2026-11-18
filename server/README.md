@@ -18,7 +18,9 @@ Backend próprio para hospedagem PHP 8.1+ com MySQL/MariaDB. Foi separado em `se
 5. Garanta que `server/config.php` não seja acessível pela web (o arquivo fica acima da pasta pública da API).
 6. Execute via SSH: `php server/bin/create-admin.php`. A senha deve ter pelo menos 14 caracteres; é armazenada com Argon2id.
 7. Configure o servidor para encaminhar `/api/*` para `server/api/index.php`, conforme a raiz de publicação adotada.
-8. Teste `GET /api/health` e depois o fluxo de sessão/autenticação.
+8. Garanta permissão de escrita PHP na pasta `server/storage/media` (o diretório é criado no primeiro upload; não conceda permissão pública de execução).
+9. Ajuste `upload_max_filesize` e `post_max_size` do PHP para pelo menos 12 MB, mantendo o limite da aplicação em 10 MB.
+10. Teste `GET /api/health` e depois o fluxo de sessão/autenticação.
 
 Não envie `config.php`, senhas, dumps de produção ou credenciais para o repositório.
 
@@ -31,11 +33,16 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | POST | /api/auth/login | Público | Autenticação por e-mail e senha |
 | GET | /api/auth/session | Sessão | Consulta usuário e token CSRF |
 | POST | /api/auth/logout | Admin + CSRF | Encerra sessão |
-| GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens e configurações |
+| GET | /api/public/content | Público | Entrega apenas página inicial publicada e universos não arquivados |
+| GET | /api/media/{storage_name} | Público | Entrega imagem cadastrada após consulta ao banco |
+| GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens, configurações e biblioteca de mídia |
 | PATCH | /api/admin/pages/home | Editor + CSRF | Salva rascunho da página inicial |
+| POST | /api/admin/pages/home/publish | Editor + CSRF | Publica a versão salva da página inicial |
 | PUT | /api/admin/universes/{slug} | Editor + CSRF | Cria/atualiza universo |
 | PATCH | /api/admin/messages/{id} | Equipe + CSRF | Atualiza status de mensagem |
 | PATCH | /api/admin/settings | Owner/Admin + CSRF | Atualiza configurações |
+| POST | /api/admin/media | Editor + CSRF | Envia imagem JPG, PNG ou WebP de até 10 MB |
+| DELETE | /api/admin/media/{id} | Owner/Admin + CSRF | Remove arquivo da biblioteca e do armazenamento |
 
 ## Segurança aplicada
 
@@ -49,8 +56,10 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 - Auditoria de login, logout e alterações administrativas.
 - Erros internos registrados no log do servidor, sem expor detalhes ao visitante.
 
-## Integração pendente
+## Estado atual e pendências de produção
 
-O frontend administrativo atual ainda opera em modo de demonstração e grava rascunhos no navegador. A API está preparada, mas não conectada ao painel. Antes de produção, implementar o cliente de sessão/CSRF, trocar dados de demonstração por respostas reais, revisar CORS e limites de login, configurar backup/retention e executar testes de segurança no ambiente real.
+O painel já consulta a API autenticada para páginas, universos, mensagens, configurações e biblioteca de mídia. A página inicial pode ser salva como rascunho e publicada explicitamente; o portal público consulta apenas conteúdo publicado. Quando a API não está configurada, o portal mantém a apresentação estática de contingência.
+
+A biblioteca aceita imagens JPG, PNG e WebP de até 10 MB. Os arquivos ficam em `server/storage/media`, fora do acesso HTTP direto; a entrega pública passa por uma rota que valida o nome no banco. Exclusão de mídia exige papel owner/administrator. Antes de produção, ainda é necessário validar permissões de escrita, limites PHP, backup e retenção no ambiente real, revisar limites de autenticação/CORS e executar testes de segurança.
 
 A publicação no DreamHost não foi realizada. Não há configuração de hospedagem, banco ou credenciais fornecidas/validadas neste projeto.
