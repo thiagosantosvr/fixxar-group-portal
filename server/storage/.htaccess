@@ -1,0 +1,2 @@
+# Media files are served only through the API after a database lookup.
+Require all denied
