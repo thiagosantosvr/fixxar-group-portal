@@ -5,6 +5,7 @@ const schema = readFileSync("server/database/schema.sql", "utf8");
 const migration = readFileSync("server/database/migrations/002_login_throttle_index.sql", "utf8");
 const admin = readFileSync("server/bin/create-admin.php", "utf8");
 const config = readFileSync("server/config.example.php", "utf8");
+const adminUi = readFileSync("src/Admin.tsx", "utf8");
 
 const checks = [
   ["sessão com strict mode", api.includes("session.use_strict_mode', '1'")],
@@ -18,7 +19,14 @@ const checks = [
   ["migração para bancos existentes", migration.includes("ADD INDEX idx_audit_login_throttle")],
   ["senhas Argon2id", api.includes("PASSWORD_ARGON2ID") && admin.includes("PASSWORD_ARGON2ID")],
   ["criação inicial restrita a CLI", admin.includes("PHP_SAPI !== 'cli'")],
-  ["chave de segurança não padrão no modelo", config.includes("REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS")]
+  ["chave de segurança não padrão no modelo", config.includes("REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS")],
+  ["configurações limitadas a chaves conhecidas", api.includes("$allowedSettings = ['site_name','contact_email','seo_title','seo_description','maintenance']")],
+  ["e-mail de contato validado", api.includes("filter_var($value,FILTER_VALIDATE_EMAIL)")],
+  ["publicação repetida de página é idempotente", api.includes("SELECT id FROM content_pages WHERE slug=? LIMIT 1")],
+  ["publicação repetida da home é idempotente", api.includes("SELECT id FROM content_pages WHERE slug='home' LIMIT 1")],
+  ["atualização repetida de mensagem é idempotente", api.includes("SELECT id FROM contact_messages WHERE id=? LIMIT 1")],
+  ["caixa de demonstração sem contatos fictícios", adminUi.includes("const initialMessages: Message[] = [];")],
+  ["indicador de páginas calculado pelo CMS", adminUi.includes("String(institutionalPages.length+1)")]
 ];
 
 let failed = false;
