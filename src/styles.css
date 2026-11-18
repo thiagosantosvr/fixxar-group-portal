@@ -90,3 +90,18 @@
 .universe-artwork.is-compact{height:180px;margin:0 0 30px}
 .detail-modal .universe-artwork{background-color:#242424}
 @media(max-width:640px){.universe-artwork{height:120px}.universe-artwork.is-compact{height:145px}}
+
+
+/* Navigation rhythm, live filter feedback and dialog focus */
+html{scroll-padding-top:88px}
+main section[id]{scroll-margin-top:88px}
+.results-count{margin:-12px 0 20px;color:#8f8f8f;font-size:10px;letter-spacing:.08em}
+.filter{transition:background .22s ease,border-color .22s ease,color .22s ease,transform .22s ease}
+.filter:active{transform:scale(.97)}
+.universe-card{transform:translateZ(0)}
+.card-action{transition:color .2s ease,border-color .2s ease}
+.card-action:hover{color:var(--orange);border-color:#ff751f80}
+.detail-modal{animation:modal-arrive .28s cubic-bezier(.2,.75,.25,1) both}
+@keyframes modal-arrive{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.detail-modal{animation:none}.filter,.card-action{transition:none}}
+@media(max-width:640px){html{scroll-padding-top:76px}main section[id]{scroll-margin-top:76px}.results-count{margin-top:-5px}}
