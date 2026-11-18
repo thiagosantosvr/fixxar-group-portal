@@ -35,6 +35,7 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | POST | /api/auth/logout | Admin + CSRF | Encerra sessão |
 | GET | /api/public/content | Público | Entrega apenas página inicial publicada e universos não arquivados |
 | GET | /api/media/{storage_name} | Público | Entrega imagem cadastrada após consulta ao banco |
+| GET | /api/admin/audit-log | Owner | Consulta histórico de ações administrativas |
 | GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens, configurações e biblioteca de mídia |\n| GET | /api/admin/users | Owner/Admin | Lista contas administrativas |\n| POST | /api/admin/users | Owner + CSRF | Cria conta com senha Argon2id |\n| PATCH | /api/admin/users/{id} | Owner + CSRF | Atualiza nome, papel, acesso e senha |
 | PATCH | /api/admin/pages/home | Editor + CSRF | Salva rascunho da página inicial |
 | POST | /api/admin/pages/home/publish | Editor + CSRF | Publica a versão salva da página inicial |
