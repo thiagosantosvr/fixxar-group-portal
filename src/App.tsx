@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { pillars, universes } from "./data";
@@ -18,7 +18,7 @@ function PublicPortal() {
   const [contact, setContact] = useState({ name: "", email: "", subject: "", message: "", website: "" });
   const [contactState, setContactState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [contactError, setContactError] = useState("");
-  async function submitContact(event: React.FormEvent<HTMLFormElement>) {
+  async function submitContact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setContactState("sending");
     setContactError("");
