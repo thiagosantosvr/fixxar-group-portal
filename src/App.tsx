@@ -17,18 +17,34 @@ function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolea
 function PublicPortal() {
   const [contact, setContact] = useState({ name: "", email: "", subject: "", message: "", website: "" });
   const [publicUniverses, setPublicUniverses] = useState(universes);
+  const [seoMeta,setSeoMeta]=useState({title:"FIXXAR GROUP — Ideias que ganham forma",description:"Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas."});
   const [portalCopy, setPortalCopy] = useState({ headline: "Ideias que ganham forma.", subheadline: "Marcas que deixam marcas.", intro: "Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.", groupHeadline: "Um grupo. Muitas formas de transformar.", groupLead: "A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.", groupBody: "Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.", processHeadline: "O movimento por trás da ideia.", processIntro: "Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.", processSteps: [{title:"Imaginar",text:"Enxergar possibilidades e descobrir o que ainda pode existir."},{title:"Construir",text:"Dar estrutura, linguagem e intenção para cada projeto."},{title:"Conectar",text:"Aproximar ideias, pessoas e experiências que fazem sentido."},{title:"Transformar",text:"Levar o que foi imaginado para o mundo real."}] });
   useEffect(() => {
     let active = true;
     fetch("/api/public/content", { headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(response => { if (!response.ok) throw new Error("Public content unavailable"); return response.json(); })
-      .then((data: { page?: { content?: Partial<typeof portalCopy> } | null; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string }> }) => {
+      .then((data: { page?: { content?: Partial<typeof portalCopy> } | null; seo?: { title?: string; description?: string }; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string }> }) => {
         if (!active) return;
         if (data.page?.content) setPortalCopy(current => ({ ...current, ...data.page?.content }));
+        if (data.seo) setSeoMeta(current => ({title:data.seo?.title || current.title,description:data.seo?.description || current.description}));
         if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "active" ? "active" : "in-development" })));
       }).catch(() => { /* Static content remains available when the API is not configured. */ });
     return () => { active = false; };
   }, []);
+  useEffect(() => {
+    document.title = seoMeta.title;
+    let description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!description) { description = document.createElement("meta"); description.name = "description"; document.head.appendChild(description); }
+    description.content = seoMeta.description;
+    const setProperty = (property:string, content:string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!tag) { tag = document.createElement("meta"); tag.setAttribute("property",property); document.head.appendChild(tag); }
+      tag.content = content;
+    };
+    setProperty("og:title",seoMeta.title);
+    setProperty("og:description",seoMeta.description);
+    setProperty("og:type","website");
+  }, [seoMeta]);
   const [contactState, setContactState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [contactError, setContactError] = useState("");
   async function submitContact(event: FormEvent<HTMLFormElement>) {
