@@ -42,3 +42,5 @@ export const saveHomePage = (data: { headline: string; subheadline: string; intr
 export const saveBrand = (slug: string, data: Record<string, unknown>) => request(`/admin/universes/${encodeURIComponent(slug)}`, "PUT", data);
 export const updateContactStatus = (id: number, status: string) => request(`/admin/messages/${id}`, "PATCH", { status });
 export const saveSiteSettings = (data: Record<string, unknown>) => request("/admin/settings", "PATCH", data);
+
+export const publishHomePage = () => request('/admin/pages/home/publish', 'POST', {});
