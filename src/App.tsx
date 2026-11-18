@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { pillars, universes } from "./data";
@@ -12,6 +12,20 @@ export default function App() {
   const reduceMotion = useReducedMotion();
   const visible = useMemo(() => filter === "Todos" ? universes : universes.filter((item) => item.category === filter), [filter]);
   const active = universes.find((item) => item.id === selected);
+
+  useEffect(() => {
+    if (!selected) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [selected]);
 
   return <div className="site-shell">
     <header className="site-header">
@@ -80,6 +94,6 @@ export default function App() {
 
     <footer className="site-footer"><a className="wordmark footer-mark" href="#inicio">FIXXAR<span>GROUP</span><i>X</i></a><p>Ideias que ganham forma. Marcas que deixam marcas.</p><span>© {new Date().getFullYear()} FIXXAR GROUP</span></footer>
 
-    {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar"><X /></button><p className="eyebrow">{active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p>{active.detail}</p>{active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar universo <ArrowUpRight size={17} /></a> : <span className="status-note">Novidades em breve</span>}</section></div>}
+    {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-description"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar janela"><X /></button><p className="eyebrow">{active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p id="detail-description">{active.detail}</p>{active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar universo <ArrowUpRight size={17} /></a> : <span className="status-note">Este universo está em desenvolvimento.</span>}</section></div>}
   </div>;
 }
