@@ -104,21 +104,30 @@ try {
     }
 
     if ($path === '/auth/login' && $method === 'POST') {
-        if (!empty($_SESSION['login_attempt_at']) && time() - (int)$_SESSION['login_attempt_at'] < 1) {
-            respond(429, ['error'=>'please_wait']);
-        }
-        $_SESSION['login_attempt_at'] = time();
         $input = body();
-        $email = filter_var(trim((string)($input['email'] ?? '')), FILTER_VALIDATE_EMAIL);
+        $email = filter_var(strtolower(trim((string)($input['email'] ?? ''))), FILTER_VALIDATE_EMAIL);
         $password = (string)($input['password'] ?? '');
         if (!$email || $password === '' || strlen($password) > 4096) respond(422, ['error'=>'invalid_credentials']);
+        $remoteIp = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $fingerprintKey = (string)($config['security_key'] ?? $config['database']['password']);
+        $loginFingerprint = hash_hmac('sha256', strtolower((string)$email) . '|' . $remoteIp, $fingerprintKey);
+        $attempts = $pdo->prepare("SELECT COUNT(*) FROM admin_audit_log WHERE action='auth.failed' AND ip_hash=? AND created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)");
+        $attempts->execute([$loginFingerprint]);
+        if ((int)$attempts->fetchColumn() >= 5) {
+            header('Retry-After: 900');
+            respond(429, ['error'=>'login_temporarily_blocked']);
+        }
         $q = $pdo->prepare('SELECT id,name,email,password_hash,role FROM admin_users WHERE email=? AND is_active=1 LIMIT 1');
         $q->execute([$email]);
         $user = $q->fetch();
         if (!$user || !password_verify($password, $user['password_hash'])) {
+            $failed = $pdo->prepare("INSERT INTO admin_audit_log (admin_user_id,action,entity_type,entity_id,ip_hash) VALUES (NULL,'auth.failed','admin_login',?,?)");
+            $failed->execute([hash('sha256', strtolower((string)$email)), $loginFingerprint]);
             usleep(350000);
             respond(401, ['error'=>'invalid_credentials']);
         }
+        $clearFailures = $pdo->prepare("DELETE FROM admin_audit_log WHERE action='auth.failed' AND ip_hash=?");
+        $clearFailures->execute([$loginFingerprint]);
         session_regenerate_id(true);
         $_SESSION['admin_id'] = (int)$user['id'];
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
