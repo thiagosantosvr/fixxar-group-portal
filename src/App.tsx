@@ -14,8 +14,7 @@ function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolea
   </div>;
 }
 
-export default function App() {
-  if (window.location.pathname.replace(/\\/+$/, "") === "/painel") return <Admin />;
+function PublicPortal() {
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todos");
   const [selected, setSelected] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -136,4 +135,8 @@ export default function App() {
 
     {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-description"><button ref={modalCloseRef} className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar janela"><X /></button><UniverseArtwork id={active.id} compact /><p className="eyebrow">{active.category} · {active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p className="detail-lead" id="detail-description">{active.description}</p><div className="detail-focus"><span className="detail-focus-label">O QUE DEFINE ESTE UNIVERSO</span><p>{active.detail}</p></div>{active.status === "active" && active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar site oficial <ArrowUpRight size={17} /></a> : <span className="status-note">Este universo está em desenvolvimento. Novidades em breve.</span>}</section></div>}
   </div>;
+}
+
+export default function App() {
+  return window.location.pathname.replace(/\\/+$/, "") === "/painel" ? <Admin /> : <PublicPortal />;
 }
