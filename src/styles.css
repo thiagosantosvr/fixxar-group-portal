@@ -41,3 +41,6 @@
 .modal-close{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;color:#111}
 .modal-close:hover{background:#1111}
 @media(max-width:640px){.site-header{background:#111f}.main-nav{box-shadow:0 18px 30px #0005}}
+
+/* Proprietary FIXXAR monogram emphasis */
+.hero-art-core b{font-size:.72em;align-self:center;margin:0 0 0 -.02em;line-height:1;color:var(--orange);text-shadow:0 0 28px #ff751f70}
