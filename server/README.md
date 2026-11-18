@@ -66,3 +66,10 @@ O painel já consulta a API autenticada para páginas, universos, mensagens, con
 A biblioteca aceita imagens JPG, PNG e WebP de até 10 MB. Os arquivos ficam em `server/storage/media`, fora do acesso HTTP direto; a entrega pública passa por uma rota que valida o nome no banco. Exclusão de mídia exige papel owner/administrator. Antes de produção, ainda é necessário validar permissões de escrita, limites PHP, backup e retenção no ambiente real, definir `security_key` aleatória no `config.php` (mínimo recomendado: 32 bytes aleatórios), revisar política de proxy/IP e CORS, e executar testes de segurança. A limitação de login usa a tabela `admin_audit_log` já criada pelo schema.
 
 A publicação no DreamHost não foi realizada. Não há configuração de hospedagem, banco ou credenciais fornecidas/validadas neste projeto.
+
+
+## Páginas institucionais públicas
+
+Páginas criadas no CMS usam uma rota pública de primeiro nível no formato `https://www.fixxarestudios.com.br/{slug}`. O front-end consulta `GET /api/public/page?slug={slug}`; a API retorna apenas registros com status `published`. Conteúdo em rascunho ou inexistente retorna HTTP 404. A lista de páginas publicadas é incluída em `GET /api/public/content` para alimentar a navegação principal.
+
+Slugs são limitados a letras minúsculas, números e hífens (2–100 caracteres). Os caminhos reservados `api`, `painel`, `assets`, `storage` e `server` não podem ser usados. O roteamento da hospedagem deve manter a regra SPA do `public/.htaccess` depois da regra de encaminhamento da API.
