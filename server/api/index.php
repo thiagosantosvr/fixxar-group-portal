@@ -416,6 +416,12 @@ try {
         $mime = $finfo->file($upload['tmp_name']);
         $extensions = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
         if (!isset($extensions[$mime])) respond(415, ['error'=>'unsupported_file_type']);
+        $imageInfo = @getimagesize($upload['tmp_name']);
+        if (!$imageInfo || ($imageInfo['mime'] ?? '') !== $mime ||
+            (int)$imageInfo[0] < 1 || (int)$imageInfo[1] < 1 ||
+            (int)$imageInfo[0] * (int)$imageInfo[1] > 40000000) {
+            respond(415, ['error'=>'invalid_image']);
+        }
         $storageName = bin2hex(random_bytes(16)) . '.' . $extensions[$mime];
         $directory = dirname(__DIR__) . '/storage/media';
         if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory)) respond(500, ['error'=>'storage_unavailable']);
@@ -423,11 +429,19 @@ try {
         if (!move_uploaded_file($upload['tmp_name'], $destination)) respond(500, ['error'=>'storage_write_failed']);
         $original = mb_substr(basename((string)($upload['name'] ?? 'imagem')), 0, 255);
         $alt = trim((string)($_POST['alt_text'] ?? ''));
-        $q = $pdo->prepare('INSERT INTO media_assets (original_name,storage_name,mime_type,file_size,alt_text,uploaded_by) VALUES (?,?,?,?,?,?)');
-        $q->execute([$original,$storageName,$mime,$size,mb_substr($alt,0,255),(int)$admin['id']]);
-        $id = (int)$pdo->lastInsertId();
-        audit($pdo,$admin,'media.upload','media_asset',(string)$id);
-        respond(201,['ok'=>true,'asset'=>['id'=>$id,'original_name'=>$original,'storage_name'=>$storageName,'mime_type'=>$mime,'file_size'=>$size,'alt_text'=>$alt,'url'=>'/api/media/'.$storageName]]);
+        try {
+            $pdo->beginTransaction();
+            $q = $pdo->prepare('INSERT INTO media_assets (original_name,storage_name,mime_type,file_size,alt_text,uploaded_by) VALUES (?,?,?,?,?,?)');
+            $q->execute([$original,$storageName,$mime,$size,mb_substr($alt,0,255),(int)$admin['id']]);
+            $id = (int)$pdo->lastInsertId();
+            audit($pdo,$admin,'media.upload','media_asset',(string)$id);
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            if (is_file($destination)) unlink($destination);
+            throw $error;
+        }
+        respond(201,['ok'=>true,'asset'=>['id'=>$id,'original_name'=>$original,'storage_name'=>$storageName,'mime_type'=>$mime,'file_size'=>$size,'alt_text'=>mb_substr($alt,0,255),'url'=>'/api/media/'.$storageName]]);
     }
 
     if (preg_match('#^/admin/media/(\\d+)$#', $path, $match) && $method === 'DELETE') {
@@ -436,10 +450,27 @@ try {
         $q->execute([(int)$match[1]]);
         $asset=$q->fetch();
         if (!$asset) respond(404,['error'=>'media_not_found']);
-        $pdo->prepare('DELETE FROM media_assets WHERE id=?')->execute([(int)$match[1]]);
-        $file=dirname(__DIR__).'/storage/media/'.$asset['storage_name'];
-        if (is_file($file)) unlink($file);
-        audit($pdo,$admin,'media.delete','media_asset',$match[1]);
+        $directory=dirname(__DIR__).'/storage/media';
+        $file=$directory.'/'.$asset['storage_name'];
+        $tombstone=$directory.'/'.bin2hex(random_bytes(16)).'.delete';
+        $moved=false;
+        if (is_file($file)) {
+            if (!rename($file,$tombstone)) respond(500,['error'=>'media_storage_unavailable']);
+            $moved=true;
+        }
+        try {
+            $pdo->beginTransaction();
+            $pdo->prepare('DELETE FROM media_assets WHERE id=?')->execute([(int)$match[1]]);
+            audit($pdo,$admin,'media.delete','media_asset',$match[1]);
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            if ($moved && is_file($tombstone)) rename($tombstone,$file);
+            throw $error;
+        }
+        if ($moved && is_file($tombstone) && !unlink($tombstone)) {
+            error_log('[FIXXAR API] mídia removida do catálogo; arquivo temporário pendente de limpeza.');
+        }
         respond(200,['ok'=>true]);
     }
 
