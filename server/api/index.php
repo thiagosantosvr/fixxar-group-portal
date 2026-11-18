@@ -335,9 +335,11 @@ try {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $slug = $match[1];
         if (in_array($slug, ['api','painel','assets','storage','server'], true)) respond(422, ['error'=>'reserved_page_slug']);
+        $exists = $pdo->prepare('SELECT id FROM content_pages WHERE slug=? LIMIT 1');
+        $exists->execute([$slug]);
+        if (!$exists->fetch()) respond(404,['error'=>'page_not_found']);
         $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug=?");
         $q->execute([(int)$admin['id'],$slug]);
-        if (!$q->rowCount()) respond(404,['error'=>'page_not_found']);
         audit($pdo,$admin,'page.publish','page',$slug);
         respond(200,['ok'=>true,'status'=>'published']);
     }
@@ -365,9 +367,10 @@ try {
 
     if ($path === '/admin/pages/home/publish' && $method === 'POST') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
+        $exists = $pdo->query("SELECT id FROM content_pages WHERE slug='home' LIMIT 1");
+        if (!$exists->fetch()) respond(404, ['error'=>'page_not_found']);
         $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug='home'");
         $q->execute([(int)$admin['id']]);
-        if (!$q->rowCount()) respond(404, ['error'=>'page_not_found']);
         audit($pdo, $admin, 'page.publish', 'page', 'home');
         respond(200, ['ok'=>true,'status'=>'published']);
     }
@@ -393,9 +396,11 @@ try {
         $input=body(); $status=(string)($input['status']??'');
         $map=['Novo'=>'new','Em atendimento'=>'in_progress','Concluído'=>'done','Arquivado'=>'archived'];
         if (!isset($map[$status])) respond(422,['error'=>'invalid_message_status']);
+        $exists=$pdo->prepare('SELECT id FROM contact_messages WHERE id=? LIMIT 1');
+        $exists->execute([(int)$match[1]]);
+        if (!$exists->fetch()) respond(404,['error'=>'message_not_found']);
         $q=$pdo->prepare('UPDATE contact_messages SET status=? WHERE id=?');
         $q->execute([$map[$status],(int)$match[1]]);
-        if (!$q->rowCount()) respond(404,['error'=>'message_not_found']);
         audit($pdo,$admin,'message.status','contact_message',$match[1]);
         respond(200,['ok'=>true]);
     }
