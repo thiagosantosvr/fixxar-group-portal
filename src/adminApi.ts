@@ -60,3 +60,8 @@ export async function uploadAdminMedia(file: File) {
   return result as { ok: boolean; asset: AdminMediaAsset & { url: string } };
 }
 export async function deleteAdminMedia(id: number) { return request(`/admin/media/${id}`, "DELETE"); }
+
+export type ManagedAdminUser = { id:number; name:string; email:string; role:"owner"|"administrator"|"editor"|"support"; is_active:number; last_login_at:string|null; created_at?:string };
+export const loadAdminUsers = async () => (await request<{users:ManagedAdminUser[]}>("/admin/users")).users;
+export const createAdminUser = (data:{name:string;email:string;password:string;role:string}) => request<{ok:boolean;user:ManagedAdminUser}>("/admin/users","POST",data);
+export const updateAdminUser = (id:number,data:{name?:string;role?:string;is_active?:boolean;password?:string}) => request<{ok:boolean}>(`/admin/users/${id}`,"PATCH",data);
