@@ -74,3 +74,7 @@ A publicação no DreamHost não foi realizada. Não há configuração de hospe
 Páginas criadas no CMS usam uma rota pública de primeiro nível no formato `https://www.fixxarestudios.com.br/{slug}`. O front-end consulta `GET /api/public/page?slug={slug}`; a API retorna apenas registros com status `published`. Conteúdo em rascunho ou inexistente retorna HTTP 404. A lista de páginas publicadas é incluída em `GET /api/public/content` para alimentar a navegação principal.
 
 Slugs são limitados a letras minúsculas, números e hífens (2–100 caracteres). Os caminhos reservados `api`, `painel`, `assets`, `storage` e `server` não podem ser usados. O roteamento da hospedagem deve manter a regra SPA do `public/.htaccess` depois da regra de encaminhamento da API.
+
+## Backup administrativo
+
+A ação **Exportar backup** gera um JSON versionado (`fixxar-group-backup`, schema 2) com o estado editável da página inicial, páginas institucionais, universos, mensagens, configurações e índice de mídia. O arquivo não contém os binários das imagens, contas administrativas, hashes de senha nem tokens de sessão. Portanto, ele é um backup estruturado de conteúdo, não substitui o backup completo do banco de dados e da pasta `server/storage/media`. Armazene-o em local protegido, pois pode conter dados pessoais enviados pelo formulário de contato.
