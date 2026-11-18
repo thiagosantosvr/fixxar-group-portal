@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { pillars, universes } from "./data";
@@ -17,6 +17,7 @@ export default function App() {
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todos");
   const [selected, setSelected] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const modalCloseRef = useRef<HTMLButtonElement>(null);
   const reduceMotion = useReducedMotion();
   const visible = useMemo(() => filter === "Todos" ? universes : universes.filter((item) => item.category === filter), [filter]);
   const active = universes.find((item) => item.id === selected);
@@ -24,14 +25,33 @@ export default function App() {
   useEffect(() => {
     if (!selected) return;
     const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.body.style.overflow = "hidden";
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelected(null);
+    modalCloseRef.current?.focus();
+    const handleDialogKeys = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelected(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = document.querySelector<HTMLElement>(".detail-modal");
+      const focusable = dialog?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", handleDialogKeys);
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("keydown", handleDialogKeys);
+      previouslyFocused?.focus();
     };
   }, [selected]);
 
@@ -75,7 +95,7 @@ export default function App() {
       <section className="universes section-pad" id="universos">
         <div className="section-kicker light-kicker"><span>02</span><span>NOSSOS UNIVERSOS</span></div>
         <div className="section-heading"><div><p className="eyebrow">DIFERENTES ESPECIALIDADES. UMA VISÃO CONECTADA.</p><h2>Conheça nossas<br /><em>marcas.</em></h2></div><p>Cada universo tem sua identidade, sua linguagem e seu jeito de transformar. Todos fazem parte de algo maior.</p></div>
-        <div className="filter-list" role="group" aria-label="Filtrar universos">{filters.map((item) => <button key={item} className={filter === item ? "filter active" : "filter"} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item}</button>)}</div>
+        <div className="filter-list" role="group" aria-label="Filtrar universos">{filters.map((item) => <button key={item} className={filter === item ? "filter active" : "filter"} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item}</button>)}</div>\n        <p className="results-count" role="status" aria-live="polite">{visible.length} {visible.length === 1 ? "universo encontrado" : "universos encontrados"}</p>
         <div className="universe-grid" aria-live="polite">{visible.map((item, index) => <motion.article layout key={item.id} className="universe-card" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .4, delay: index * .05 }}>
           <div className="card-top"><span>0{universes.findIndex((u) => u.id === item.id) + 1}</span><span>{item.category}</span></div><UniverseArtwork id={item.id} /><p className="card-eyebrow">{item.eyebrow}</p><h3>{item.name}</h3><p className="card-description">{item.description}</p><button className="card-action" onClick={() => setSelected(item.id)}>Conheça este universo <ArrowUpRight size={17} /></button>
         </motion.article>)}</div>
@@ -102,6 +122,6 @@ export default function App() {
 
     <footer className="site-footer"><a className="wordmark footer-mark" href="#inicio">FIXXAR<span>GROUP</span><i>X</i></a><p>Ideias que ganham forma. Marcas que deixam marcas.</p><span>© {new Date().getFullYear()} FIXXAR GROUP</span></footer>
 
-    {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-description"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar janela"><X /></button><UniverseArtwork id={active.id} compact /><p className="eyebrow">{active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p id="detail-description">{active.detail}</p>{active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar universo <ArrowUpRight size={17} /></a> : <span className="status-note">Este universo está em desenvolvimento.</span>}</section></div>}
+    {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-description"><button ref={modalCloseRef} className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar janela"><X /></button><UniverseArtwork id={active.id} compact /><p className="eyebrow">{active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p id="detail-description">{active.detail}</p>{active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar universo <ArrowUpRight size={17} /></a> : <span className="status-note">Este universo está em desenvolvimento.</span>}</section></div>}
   </div>;
 }
