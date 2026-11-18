@@ -4,6 +4,17 @@ const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const app = readFileSync("src/App.tsx", "utf8");
 const data = readFileSync("src/data.ts", "utf8");
 const admin = readFileSync("src/Admin.tsx", "utf8");
+
+const demoIsolationChecks = [
+  ["universos demo não aparecem antes do bootstrap em sessão real", /useState<Universe\[]>\(\(\)=>live\?\[\]:readSaved\("fixxar-admin-universes",universes\)\)/.test(admin)],
+  ["mensagens locais não contaminam a sessão real", /useState<Message\[]>\(\(\)=>live\?\[\]:readSaved\("fixxar-admin-messages",initialMessages\)\)/.test(admin)],
+  ["rascunho local da página inicial não é carregado no ambiente real", /useState\(\(\)=>readHomeDraft\(!live\)\)/.test(admin) && /const saved=useLocal\?readSaved/.test(admin)],
+  ["configurações locais não são reaproveitadas no ambiente real", /useState\(\(\)=>live\?\{siteName:/.test(admin)]
+];
+for (const [label, ok] of demoIsolationChecks) {
+  console.log(`${ok ? "✓" : "✗"} ${label}`);
+  if (!ok) process.exitCode = 1;
+}
 const universeSource = data.match(/export const universes:\s*Universe\[\]\s*=\s*\[([\s\S]*?)\];/)?.[1] ?? "";
 const universeEntries = [...universeSource.matchAll(/\{([^{}]*)\}/g)].map((match) => match[1]);
 const universeIds = universeEntries.map((entry) => entry.match(/\bid:\s*"([^"]+)"/)?.[1]).filter(Boolean);
