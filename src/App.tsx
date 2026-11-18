@@ -32,7 +32,17 @@ export default function App() {
           <p className="hero-copy">Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.</p>
           <a className="text-link" href="#universos">Explore nossos universos <ArrowDownRight size={18} /></a>
         </div>
-        <div className="hero-index"><span>01 / 04</span><span>CRIAR · CONECTAR · TRANSFORMAR</span></div>
+        <div className="hero-art" aria-hidden="true">
+          <div className="hero-art-ring ring-a" />
+          <div className="hero-art-ring ring-b" />
+          <div className="hero-art-ring ring-c" />
+          <div className="hero-art-core"><span>F</span><b>×</b></div>
+          <div className="hero-art-label label-top">IDEAS INTO FORM</div>
+          <div className="hero-art-label label-bottom">BRANDS WITH PURPOSE</div>
+          <div className="hero-art-node node-one" />
+          <div className="hero-art-node node-two" />
+        </div>
+        <div className="hero-index"><span>01 / 05</span><span>CRIAR · CONECTAR · TRANSFORMAR</span></div>
       </section>
 
       <section className="manifesto section-pad" id="grupo">
@@ -49,8 +59,19 @@ export default function App() {
         </motion.article>)}</div>
       </section>
 
+      <section className="process section-pad" id="processo">
+        <div className="section-kicker"><span>03</span><span>DO PENSAMENTO À REALIDADE</span></div>
+        <div className="process-intro"><h2>O movimento<br /><em>por trás da ideia.</em></h2><p>Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.</p></div>
+        <div className="process-track">
+          <article><span>01</span><h3>Imaginar</h3><p>Enxergar possibilidades e descobrir o que ainda pode existir.</p></article>
+          <article><span>02</span><h3>Construir</h3><p>Dar estrutura, linguagem e intenção para cada projeto.</p></article>
+          <article><span>03</span><h3>Conectar</h3><p>Aproximar ideias, pessoas e experiências que fazem sentido.</p></article>
+          <article><span>04</span><h3>Transformar</h3><p>Levar o que foi imaginado para o mundo real.</p></article>
+        </div>
+      </section>
+
       <section className="essence section-pad" id="essencia">
-        <div className="section-kicker"><span>03</span><span>NO QUE ACREDITAMOS</span></div><div className="section-heading essence-heading"><h2>Quatro pilares.<br /><em>Uma essência.</em></h2><p>O que fazemos muda de forma. O que nos move permanece.</p></div>
+        <div className="section-kicker"><span>04</span><span>NO QUE ACREDITAMOS</span></div><div className="section-heading essence-heading"><h2>Quatro pilares.<br /><em>Uma essência.</em></h2><p>O que fazemos muda de forma. O que nos move permanece.</p></div>
         <div className="pillar-grid">{pillars.map((pillar) => <article className="pillar" key={pillar.number}><span>{pillar.number}</span><h3>{pillar.title}</h3><p>{pillar.text}</p></article>)}</div>
       </section>
 
