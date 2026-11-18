@@ -37,6 +37,8 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | GET | /api/media/{storage_name} | Público | Entrega imagem cadastrada após consulta ao banco |
 | GET | /api/admin/audit-log | Owner | Consulta histórico de ações administrativas |
 | GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens, configurações e biblioteca de mídia |\n| GET | /api/admin/users | Owner/Admin | Lista contas administrativas |\n| POST | /api/admin/users | Owner + CSRF | Cria conta com senha Argon2id |\n| PATCH | /api/admin/users/{id} | Owner + CSRF | Atualiza nome, papel, acesso e senha |
+| PUT | /api/admin/pages/{slug} | Editor + CSRF | Salva rascunho de página institucional independente |
+| POST | /api/admin/pages/{slug}/publish | Editor + CSRF | Publica página institucional no CMS |
 | PATCH | /api/admin/pages/home | Editor + CSRF | Salva rascunho da página inicial |
 | POST | /api/admin/pages/home/publish | Editor + CSRF | Publica a versão salva da página inicial |
 | PUT | /api/admin/universes/{slug} | Editor + CSRF | Cria/atualiza universo |
@@ -59,7 +61,7 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 
 ## Estado atual e pendências de produção
 
-O painel já consulta a API autenticada para páginas, universos, mensagens, configurações, biblioteca de mídia e contas administrativas. O gerenciamento de usuários é exclusivo do proprietário; permite criar contas, alterar papéis e suspender acessos, preservando pelo menos um proprietário ativo. A página inicial pode ser salva como rascunho e publicada explicitamente; o portal público consulta apenas conteúdo publicado. Quando a API não está configurada, o portal mantém a apresentação estática de contingência.
+O painel já consulta a API autenticada para páginas, universos, mensagens, configurações, biblioteca de mídia e contas administrativas. O gerenciamento de usuários é exclusivo do proprietário; permite criar contas, alterar papéis e suspender acessos, preservando pelo menos um proprietário ativo. A página inicial pode ser salva como rascunho e publicada explicitamente. Páginas institucionais adicionais podem ser criadas, editadas e marcadas como publicadas individualmente no CMS; sua renderização e inclusão na navegação pública ainda dependem da implementação das respectivas rotas no frontend. O portal público atualmente consulta apenas o conteúdo publicado da página inicial. Quando a API não está configurada, o portal mantém a apresentação estática de contingência.
 
 A biblioteca aceita imagens JPG, PNG e WebP de até 10 MB. Os arquivos ficam em `server/storage/media`, fora do acesso HTTP direto; a entrega pública passa por uma rota que valida o nome no banco. Exclusão de mídia exige papel owner/administrator. Antes de produção, ainda é necessário validar permissões de escrita, limites PHP, backup e retenção no ambiente real, definir `security_key` aleatória no `config.php` (mínimo recomendado: 32 bytes aleatórios), revisar política de proxy/IP e CORS, e executar testes de segurança. A limitação de login usa a tabela `admin_audit_log` já criada pelo schema.
 
