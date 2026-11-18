@@ -25,6 +25,7 @@ const checks = [
   ["publicação repetida de página é idempotente", api.includes("SELECT id FROM content_pages WHERE slug=? LIMIT 1")],
   ["publicação repetida da home é idempotente", api.includes("SELECT id FROM content_pages WHERE slug='home' LIMIT 1")],
   ["atualização repetida de mensagem é idempotente", api.includes("SELECT id FROM contact_messages WHERE id=? LIMIT 1")],
+  ["proteção transacional do último proprietário", api.includes("SELECT id,name,email,role,is_active FROM admin_users WHERE id=? FOR UPDATE") && api.includes("SELECT id FROM admin_users WHERE role='owner' AND is_active=1 FOR UPDATE") && api.includes("$pdo->beginTransaction();")],
   ["imagem validada por MIME e assinatura", api.includes("getimagesize($upload['tmp_name'])") && api.includes("($imageInfo['mime'] ?? '') !== $mime")],
   ["limite contra imagens com dimensões excessivas", api.includes("> 40000000")],
   ["upload transacional com limpeza em falha", api.includes("$pdo->beginTransaction();") && api.includes("if (is_file($destination)) unlink($destination)")],
