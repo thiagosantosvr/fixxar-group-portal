@@ -105,3 +105,12 @@ main section[id]{scroll-margin-top:88px}
 @keyframes modal-arrive{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.detail-modal{animation:none}.filter,.card-action{transition:none}}
 @media(max-width:640px){html{scroll-padding-top:76px}main section[id]{scroll-margin-top:76px}.results-count{margin-top:-5px}}
+
+
+/* Editorial hierarchy for universe detail experiences */
+.detail-lead{font:500 17px/1.7 Manrope,sans-serif!important;color:#292724!important;max-width:440px}
+.detail-focus{margin-top:28px;padding:20px 0;border-top:1px solid #d8d3ca;border-bottom:1px solid #d8d3ca}
+.detail-focus-label{font-size:8px;letter-spacing:.2em;color:#a65b2c;font-weight:700}
+.detail-focus p{font-size:13px;line-height:1.8;color:#666;margin:10px 0 0}
+.detail-modal .status-note{line-height:1.7;max-width:340px}
+.detail-modal .text-link{margin-top:28px}
