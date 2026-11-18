@@ -53,13 +53,13 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 - Controle de papéis (owner, administrator, editor, support).
 - Validação de URLs HTTPS para links externos.
 - Respostas sem cache e cabeçalhos básicos de segurança.
-- Auditoria de login, logout e alterações administrativas.
+- Auditoria de login, logout, falhas de autenticação e alterações administrativas.\n- Bloqueio temporário por combinação de e-mail e IP após cinco falhas em quinze minutos, persistido no banco de auditoria e com cabeçalho `Retry-After`.
 - Erros internos registrados no log do servidor, sem expor detalhes ao visitante.
 
 ## Estado atual e pendências de produção
 
 O painel já consulta a API autenticada para páginas, universos, mensagens, configurações e biblioteca de mídia. A página inicial pode ser salva como rascunho e publicada explicitamente; o portal público consulta apenas conteúdo publicado. Quando a API não está configurada, o portal mantém a apresentação estática de contingência.
 
-A biblioteca aceita imagens JPG, PNG e WebP de até 10 MB. Os arquivos ficam em `server/storage/media`, fora do acesso HTTP direto; a entrega pública passa por uma rota que valida o nome no banco. Exclusão de mídia exige papel owner/administrator. Antes de produção, ainda é necessário validar permissões de escrita, limites PHP, backup e retenção no ambiente real, revisar limites de autenticação/CORS e executar testes de segurança.
+A biblioteca aceita imagens JPG, PNG e WebP de até 10 MB. Os arquivos ficam em `server/storage/media`, fora do acesso HTTP direto; a entrega pública passa por uma rota que valida o nome no banco. Exclusão de mídia exige papel owner/administrator. Antes de produção, ainda é necessário validar permissões de escrita, limites PHP, backup e retenção no ambiente real, definir `security_key` aleatória no `config.php` (mínimo recomendado: 32 bytes aleatórios), revisar política de proxy/IP e CORS, e executar testes de segurança. A limitação de login usa a tabela `admin_audit_log` já criada pelo schema.
 
 A publicação no DreamHost não foi realizada. Não há configuração de hospedagem, banco ou credenciais fornecidas/validadas neste projeto.
