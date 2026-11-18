@@ -297,6 +297,35 @@ try {
         respond(200, ['user'=>$admin,'pages'=>$pages,'universes'=>$brands,'messages'=>$messages,'settings'=>$settings,'media'=>$media]);
     }
 
+    if (preg_match('#^/admin/pages/([a-z0-9-]{2,100})$#', $path, $match) && $method === 'PUT') {
+        requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
+        $slug = $match[1];
+        if ($slug === 'home') respond(409, ['error'=>'use_home_editor']);
+        $input = body();
+        $title = trim((string)($input['title'] ?? ''));
+        $summary = trim((string)($input['summary'] ?? ''));
+        $content = trim((string)($input['content'] ?? ''));
+        if ($title === '' || mb_strlen($title)>180 || mb_strlen($summary)>500 || mb_strlen($content)>12000) {
+            respond(422, ['error'=>'invalid_page_content']);
+        }
+        $payload = ['summary'=>$summary,'content'=>$content];
+        $q = $pdo->prepare("INSERT INTO content_pages (slug,title,content_json,status,updated_by) VALUES (?,?,?,'draft',?) ON DUPLICATE KEY UPDATE title=VALUES(title),content_json=VALUES(content_json),status='draft',updated_by=VALUES(updated_by)");
+        $q->execute([$slug,$title,json_encode($payload,JSON_UNESCAPED_UNICODE),(int)$admin['id']]);
+        audit($pdo,$admin,'page.save_draft','page',$slug);
+        respond(200,['ok'=>true,'slug'=>$slug,'status'=>'draft']);
+    }
+
+    if (preg_match('#^/admin/pages/([a-z0-9-]{2,100})/publish$#', $path, $match) && $method === 'POST') {
+        requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
+        $slug = $match[1];
+        if ($slug === 'home') respond(409, ['error'=>'use_home_publisher']);
+        $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug=?");
+        $q->execute([(int)$admin['id'],$slug]);
+        if (!$q->rowCount()) respond(404,['error'=>'page_not_found']);
+        audit($pdo,$admin,'page.publish','page',$slug);
+        respond(200,['ok'=>true,'status'=>'published']);
+    }
+
     if ($path === '/admin/pages/home' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $input = body();
