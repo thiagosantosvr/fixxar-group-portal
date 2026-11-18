@@ -65,3 +65,6 @@ export type ManagedAdminUser = { id:number; name:string; email:string; role:"own
 export const loadAdminUsers = async () => (await request<{users:ManagedAdminUser[]}>("/admin/users")).users;
 export const createAdminUser = (data:{name:string;email:string;password:string;role:string}) => request<{ok:boolean;user:ManagedAdminUser}>("/admin/users","POST",data);
 export const updateAdminUser = (id:number,data:{name?:string;role?:string;is_active?:boolean;password?:string}) => request<{ok:boolean}>(`/admin/users/${id}`,"PATCH",data);
+
+export type AdminAuditEntry = { id:number; action:string; entity_type:string; entity_id:string|null; created_at:string; admin_name:string|null; admin_email:string|null };
+export const loadAdminAuditLog = async () => (await request<{entries:AdminAuditEntry[]}>("/admin/audit-log?limit=150")).entries;
