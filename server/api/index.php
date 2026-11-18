@@ -446,8 +446,16 @@ try {
     if ($path === '/admin/settings' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator']);
         $input=body();
+        $allowedSettings = ['site_name','contact_email','seo_title','seo_description','maintenance'];
         foreach ($input as $key=>$value) {
-            if (!preg_match('/^[a-z][a-z0-9_.-]{1,119}$/',$key)) respond(422,['error'=>'invalid_setting_key']);
+            if (!in_array($key,$allowedSettings,true)) respond(422,['error'=>'invalid_setting_key']);
+            if ($key === 'maintenance' && !is_bool($value)) respond(422,['error'=>'invalid_setting_value','field'=>$key]);
+            if ($key !== 'maintenance' && (!is_string($value) || mb_strlen($value) > ($key === 'seo_description' ? 500 : 180))) {
+                respond(422,['error'=>'invalid_setting_value','field'=>$key]);
+            }
+            if ($key === 'contact_email' && $value !== '' && !filter_var($value,FILTER_VALIDATE_EMAIL)) {
+                respond(422,['error'=>'invalid_setting_value','field'=>$key]);
+            }
             $q=$pdo->prepare('INSERT INTO site_settings (setting_key,setting_value,updated_by) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value),updated_by=VALUES(updated_by)');
             $q->execute([$key,json_encode($value,JSON_UNESCAPED_UNICODE),(int)$admin['id']]);
         }
