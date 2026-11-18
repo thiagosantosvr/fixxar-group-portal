@@ -54,6 +54,7 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 - Regeneração do identificador de sessão no login.
 - Token CSRF para operações de escrita.
 - Controle de papéis (owner, administrator, editor, support).
+- Alterações de papel e suspensão de proprietários são protegidas por transação e bloqueios de linha (`SELECT ... FOR UPDATE`), preservando o último proprietário ativo mesmo diante de requisições concorrentes.
 - Validação de URLs HTTPS para links externos.
 - Respostas sem cache e cabeçalhos básicos de segurança.
 - Auditoria de login, logout, falhas de autenticação e alterações administrativas.\n- Bloqueio temporário por combinação de e-mail e IP após cinco falhas em quinze minutos, persistido no banco de auditoria e com cabeçalho `Retry-After`.
