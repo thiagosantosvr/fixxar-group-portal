@@ -265,29 +265,41 @@ try {
         requireCsrf(); requireRole($admin,['owner']);
         $id=(int)$match[1];
         $input=body();
-        $targetQuery=$pdo->prepare('SELECT id,name,email,role,is_active FROM admin_users WHERE id=? LIMIT 1');
-        $targetQuery->execute([$id]);
-        $target=$targetQuery->fetch();
-        if (!$target) respond(404,['error'=>'admin_user_not_found']);
-        $name=trim((string)($input['name']??$target['name']));
-        $role=(string)($input['role']??$target['role']);
-        $active=array_key_exists('is_active',$input)?(int)(bool)$input['is_active']:(int)$target['is_active'];
         $password=(string)($input['password']??'');
-        if ($name==='' || mb_strlen($name)>120 || !in_array($role,['owner','administrator','editor','support'],true) || !in_array($active,[0,1],true) ||
-            ($password!=='' && (strlen($password)<14 || strlen($password)>4096))) respond(422,['error'=>'invalid_admin_user']);
-        if ($id===(int)$admin['id'] && ($active===0 || $role!=='owner')) respond(422,['error'=>'cannot_change_own_owner_access']);
-        if ($target['role']==='owner' && ($role!=='owner' || $active===0)) {
-            $owners=(int)$pdo->query("SELECT COUNT(*) FROM admin_users WHERE role='owner' AND is_active=1")->fetchColumn();
-            if ($owners<=1) respond(409,['error'=>'last_active_owner_required']);
+        if ($password!=='' && (strlen($password)<14 || strlen($password)>4096)) respond(422,['error'=>'invalid_admin_user']);
+        try {
+            $pdo->beginTransaction();
+            // Lock the target and owner rows so concurrent changes cannot remove the last active owner.
+            $targetQuery=$pdo->prepare('SELECT id,name,email,role,is_active FROM admin_users WHERE id=? FOR UPDATE');
+            $targetQuery->execute([$id]);
+            $target=$targetQuery->fetch();
+            if (!$target) { $pdo->rollBack(); respond(404,['error'=>'admin_user_not_found']); }
+            $name=array_key_exists('name',$input)?trim((string)$input['name']):(string)$target['name'];
+            $role=(string)($input['role']??$target['role']);
+            $active=array_key_exists('is_active',$input)?(int)(bool)$input['is_active']:(int)$target['is_active'];
+            if ($name==='' || mb_strlen($name)>120 || !in_array($role,['owner','administrator','editor','support'],true) || !in_array($active,[0,1],true)) {
+                $pdo->rollBack(); respond(422,['error'=>'invalid_admin_user']);
+            }
+            if ($id===(int)$admin['id'] && ($active===0 || $role!=='owner')) {
+                $pdo->rollBack(); respond(422,['error'=>'cannot_change_own_owner_access']);
+            }
+            if ($target['role']==='owner' && ($role!=='owner' || $active===0)) {
+                $owners=$pdo->query("SELECT id FROM admin_users WHERE role='owner' AND is_active=1 FOR UPDATE")->fetchAll();
+                if (count($owners)<=1) { $pdo->rollBack(); respond(409,['error'=>'last_active_owner_required']); }
+            }
+            if ($password!=='') {
+                $q=$pdo->prepare('UPDATE admin_users SET name=?,role=?,is_active=?,password_hash=? WHERE id=?');
+                $q->execute([$name,$role,$active,password_hash($password,PASSWORD_ARGON2ID),$id]);
+            } else {
+                $q=$pdo->prepare('UPDATE admin_users SET name=?,role=?,is_active=? WHERE id=?');
+                $q->execute([$name,$role,$active,$id]);
+            }
+            audit($pdo,$admin,'admin_user.update','admin_user',(string)$id);
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $error;
         }
-        if ($password!=='') {
-            $q=$pdo->prepare('UPDATE admin_users SET name=?,role=?,is_active=?,password_hash=? WHERE id=?');
-            $q->execute([$name,$role,$active,password_hash($password,PASSWORD_ARGON2ID),$id]);
-        } else {
-            $q=$pdo->prepare('UPDATE admin_users SET name=?,role=?,is_active=? WHERE id=?');
-            $q->execute([$name,$role,$active,$id]);
-        }
-        audit($pdo,$admin,'admin_user.update','admin_user',(string)$id);
         respond(200,['ok'=>true]);
     }
 
