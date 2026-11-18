@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowRight, ArrowUpRight, Menu, X } from "lucide-react"
 import { motion, useReducedMotion } from "framer-motion";
 import { pillars, universes } from "./data";
 import Admin from "./Admin";
+import InstitutionalPage from "./InstitutionalPage";
 
 const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização"] as const;
 
@@ -197,5 +198,8 @@ function PublicPortal() {
 }
 
 export default function App() {
-  return (window.location.pathname === "/painel" || window.location.pathname === "/painel/") ? <Admin /> : <PublicPortal />;
+  const path = window.location.pathname.replace(/^\\/+|\\/+$/g, "");
+  if (path === "painel") return <Admin />;
+  if (path) return <InstitutionalPage slug={path} />;
+  return <PublicPortal />;
 }
