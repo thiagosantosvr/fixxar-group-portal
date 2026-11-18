@@ -191,14 +191,16 @@ try {
         if ($page) $page['content'] = jsonColumn($page, 'content_json');
         unset($page['content_json']);
         $universes = $pdo->query("SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order FROM brand_universes WHERE status IN ('active','in-development') ORDER BY sort_order,id")->fetchAll();
-        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description')");
+        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance')");
         $settingQuery->execute();
         $seo = ['title'=>'FIXXAR GROUP — Ideias que ganham forma','description'=>'Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas.'];
+        $maintenance = false;
         foreach ($settingQuery->fetchAll() as $setting) {
             $value = json_decode((string)$setting['setting_value'], true);
+            if ($setting['setting_key'] === 'maintenance') { $maintenance = $value === true || $value === 1 || $value === '1'; continue; }
             if (is_string($value) && trim($value) !== '') $seo[$setting['setting_key'] === 'seo_title' ? 'title' : 'description'] = trim($value);
         }
-        respond(200, ['page'=>$page ?: null,'universes'=>$universes,'seo'=>$seo]);
+        respond(200, ['page'=>$page ?: null,'universes'=>$universes,'seo'=>$seo,'maintenance'=>$maintenance]);
     }
 
     $admin = requireAdmin($pdo);
