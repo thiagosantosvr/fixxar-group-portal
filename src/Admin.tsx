@@ -34,7 +34,7 @@ function Metric({label,value,change,icon:Icon,caption}:{label:string;value:strin
   return <article className="admin-metric"><div className="metric-top"><span>{label}</span><i><Icon size={17}/></i></div><strong>{value}</strong><div className="metric-bottom"><span className="metric-change"><ArrowUpRight size={13}/>{change}</span><small>{caption}</small></div></article>;
 }
 
-export default function Admin() {
+function AdminDashboard() {
   const [section,setSection]=useState<Section>("overview");
   const [sidebarOpen,setSidebarOpen]=useState(false);
   const [query,setQuery]=useState("");
@@ -97,4 +97,47 @@ export default function Admin() {
     {editing&&<div className="admin-modal-shade" onMouseDown={e=>{if(e.target===e.currentTarget)setEditing(null)}}><section className="admin-edit-modal"><button className="admin-modal-close" onClick={()=>setEditing(null)}><X/></button><p className="admin-overline">CADASTRO DE MARCA</p><h2>{editing.id==="novo-universo"?"Novo universo":"Editar universo"}</h2><label className="admin-field">Nome<input value={editing.name} onChange={e=>setEditing({...editing,name:e.target.value})}/></label><label className="admin-field">Identificação curta<input value={editing.eyebrow} onChange={e=>setEditing({...editing,eyebrow:e.target.value})}/></label><label className="admin-field">Descrição<textarea rows={2} value={editing.description} onChange={e=>setEditing({...editing,description:e.target.value})}/></label><label className="admin-field">Detalhamento<textarea rows={2} value={editing.detail} onChange={e=>setEditing({...editing,detail:e.target.value})}/></label><label className="admin-field">Categoria<select value={editing.category} onChange={e=>setEditing({...editing,category:e.target.value as Universe["category"]})}>{["Estratégia","Imagem","Editorial","Infantil","Personalização"].map(x=><option key={x}>{x}</option>)}</select></label><label className="admin-field">Endereço do site<input placeholder="https://" value={editing.url||""} onChange={e=>setEditing({...editing,url:e.target.value})}/></label><label className="admin-field">Situação<select value={editing.status} onChange={e=>setEditing({...editing,status:e.target.value as Universe["status"]})}><option value="active">Ativo</option><option value="in-development">Em desenvolvimento</option></select></label><div className="editor-actions"><button className="admin-secondary" onClick={()=>setEditing(null)}>Cancelar</button><button className="admin-primary" onClick={()=>{const next=brandData.some(b=>b.id===editing.id)?brandData.map(b=>b.id===editing.id?editing:b):[...brandData,{...editing,id:editing.id==="novo-universo"?"universo-"+Date.now():editing.id}];saveBrands(next);setEditing(null)}}><Check size={15}/> Salvar universo</button></div></section></div>}
     {toast&&<div className="admin-toast"><Check size={16}/>{toast}</div>}
   </div>;
+}
+
+
+export default function Admin() {
+  const [mode, setMode] = useState<"checking" | "demo" | "login" | "ready">("checking");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    getAdminSession().then(session => setMode(session.authenticated ? "ready" : "login"))
+      .catch((reason: unknown) => {
+        const failure = reason as { code?: string };
+        setMode(failure.code === "api_not_configured" ? "demo" : "login");
+      });
+  }, []);
+
+  async function enter(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      await loginAdmin(email, password);
+      setMode("ready");
+      setPassword("");
+    } catch {
+      setError("E-mail ou senha inválidos, ou serviço indisponível.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (mode === "checking") return <div className="admin-gate"><div className="admin-gate-card"><b>FIXXAR GROUP</b><p>Verificando acesso…</p></div></div>;
+  if (mode === "login") return <div className="admin-gate"><form className="admin-gate-card" onSubmit={enter}>
+    <span>FIXXAR GROUP · CENTRAL DE GESTÃO</span><h1>Acesso administrativo</h1>
+    <p>Entre com sua conta autorizada para acessar o painel.</p>
+    <label>E-mail<input type="email" autoComplete="username" required value={email} onChange={event => setEmail(event.target.value)} /></label>
+    <label>Senha<input type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} /></label>
+    {error && <small role="alert">{error}</small>}
+    <button className="admin-primary" disabled={busy}>{busy ? "Validando…" : "Entrar"}</button>
+  </form></div>;
+  return <AdminDashboard />;
 }
