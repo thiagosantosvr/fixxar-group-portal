@@ -109,7 +109,10 @@ try {
         $password = (string)($input['password'] ?? '');
         if (!$email || $password === '' || strlen($password) > 4096) respond(422, ['error'=>'invalid_credentials']);
         $remoteIp = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-        $fingerprintKey = (string)($config['security_key'] ?? $config['database']['password']);
+        $configuredSecurityKey = (string)($config['security_key'] ?? '');
+        $fingerprintKey = ($configuredSecurityKey !== '' && !str_starts_with($configuredSecurityKey, 'REPLACE_'))
+            ? $configuredSecurityKey
+            : (string)$config['database']['password'];
         $loginFingerprint = hash_hmac('sha256', strtolower((string)$email) . '|' . $remoteIp, $fingerprintKey);
         $attempts = $pdo->prepare("SELECT COUNT(*) FROM admin_audit_log WHERE action='auth.failed' AND ip_hash=? AND created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)");
         $attempts->execute([$loginFingerprint]);
