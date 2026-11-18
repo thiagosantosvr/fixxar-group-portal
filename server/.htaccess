@@ -1,0 +1,7 @@
+# Protect the private configuration file without blocking the API front controller.
+<Files "config.php">
+  Require all denied
+</Files>
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+</IfModule>
