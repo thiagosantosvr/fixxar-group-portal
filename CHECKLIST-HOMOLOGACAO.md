@@ -13,8 +13,8 @@
 ## Validação técnica
 - [x] Auditoria estática do código e dos metadados adicionada ao projeto.
 - [x] Verificação estrutural dos cinco universos e links confirmados adicionada.
-- [ ] Executar `npm run verify` em ambiente com dependências instaladas.
-- [ ] Executar `npm run build` em ambiente com dependências instaladas.
+- [x] Executar `npm run verify` no GitHub Actions (Node.js 22).
+- [x] Executar `npm run build` no GitHub Actions (artefato de produção gerado).
 - [ ] Conferir o resultado visual em navegador desktop e celular.
 - [ ] Confirmar headers e regras Apache no plano/servidor DreamHost real.
 
