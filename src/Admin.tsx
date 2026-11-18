@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity, ArrowUpRight, BarChart3, Bell, BookOpen, Check,
   ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Eye, FileText,
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { pillars, universes, type Universe } from "./data";
 import "./admin.css";
+import { getAdminSession, loginAdmin } from "./adminApi";
 
 type Section = "overview" | "pages" | "universes" | "messages" | "media" | "analytics" | "settings";
 type Message = { id:number; name:string; email:string; subject:string; date:string; status:"Novo"|"Em atendimento"|"Concluído"; excerpt:string };
@@ -115,7 +116,7 @@ export default function Admin() {
       });
   }, []);
 
-  async function enter(event: React.FormEvent<HTMLFormElement>) {
+  async function enter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError("");
