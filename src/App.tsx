@@ -138,5 +138,5 @@ function PublicPortal() {
 }
 
 export default function App() {
-  return window.location.pathname.replace(/\\/+$/, "") === "/painel" ? <Admin /> : <PublicPortal />;
+  return (window.location.pathname === "/painel" || window.location.pathname === "/painel/") ? <Admin /> : <PublicPortal />;
 }
