@@ -275,6 +275,15 @@ try {
         respond(200,['ok'=>true]);
     }
 
+    if ($path === '/admin/audit-log' && $method === 'GET') {
+        requireRole($admin, ['owner']);
+        $limit = max(1, min(200, (int)($_GET['limit'] ?? 100)));
+        $q = $pdo->prepare('SELECT l.id,l.action,l.entity_type,l.entity_id,l.created_at,u.name AS admin_name,u.email AS admin_email FROM admin_audit_log l LEFT JOIN admin_users u ON u.id=l.admin_user_id ORDER BY l.created_at DESC,l.id DESC LIMIT ?');
+        $q->bindValue(1, $limit, PDO::PARAM_INT);
+        $q->execute();
+        respond(200, ['entries'=>$q->fetchAll()]);
+    }
+
     if ($path === '/admin/bootstrap' && $method === 'GET') {
         $pages = $pdo->query('SELECT slug,title,content_json,status,updated_at FROM content_pages ORDER BY slug')->fetchAll();
         foreach ($pages as &$page) $page['content'] = jsonColumn($page, 'content_json');
