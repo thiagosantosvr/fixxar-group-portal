@@ -1,17 +1,15 @@
 # FIXXAR GROUP — Apache / DreamHost shared hosting
-# This file is copied to the document root by Vite during the production build.
-
-Options -Indexes
+# Vite copies this file from public/ to dist/ during the production build.
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Keep existing files and directories untouched.
+  # Preserve real files and directories (assets, favicon, SEO files).
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # The portal is a static single-page application.
+  # Send the remaining requests to the institutional single-page portal.
   RewriteRule ^ index.html [L]
 </IfModule>
 
@@ -21,7 +19,7 @@ Options -Indexes
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set Cross-Origin-Opener-Policy "same-origin"
-  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self'; upgrade-insecure-requests"
+  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; upgrade-insecure-requests"
 </IfModule>
 
 <IfModule mod_expires.c>
@@ -29,13 +27,16 @@ Options -Indexes
   ExpiresByType text/html "access plus 0 seconds"
   ExpiresByType text/css "access plus 1 year"
   ExpiresByType application/javascript "access plus 1 year"
-  ExpiresByType image/svg+xml "access plus 1 year"
-  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType image/x-icon "access plus 30 days"
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(css|js|svg|ico|woff2?)$">
+  <FilesMatch "\.(css|js)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(svg|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
   </FilesMatch>
   <FilesMatch "\.(html|txt|xml)$">
     Header set Cache-Control "public, max-age=0, must-revalidate"
