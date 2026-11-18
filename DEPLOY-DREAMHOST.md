@@ -29,7 +29,7 @@ O Vite gera o site pronto para hospedagem na pasta `dist/`. O arquivo `public/.h
 2. Localize o diretório Document Root informado para esse domínio. Em instalações comuns ele pode ser `~/www.fixxarestudios.com.br/`, mas use o caminho exibido no painel, não presuma o nome.
 3. Faça backup dos arquivos que já estiverem nesse diretório antes de substituir qualquer conteúdo.
 4. Envie **o conteúdo de `dist/`**, e não a pasta `dist` inteira, para o Document Root.
-5. Confirme que `index.html`, `.htaccess` e a pasta `assets/` estão diretamente no Document Root.
+5. Confirme que `index.html`, `.htaccess` e a pasta `assets/` estão diretamente no Document Root.\n6. Para ativar a API administrativa, envie também a pasta `server/` para o Document Root, preservando `server/api/` e `server/.htaccess`. Mantenha `server/config.php` preenchido apenas no servidor; o `.htaccess` da pasta `server/` bloqueia acesso HTTP direto a esse arquivo.\n7. Importe `server/database/schema.sql` em um banco dedicado e configure `server/config.php` com as credenciais reais. Crie o primeiro usuário via SSH com `php server/bin/create-admin.php`.\n8. Confirme `GET /api/health` antes de conectar o painel. Não ative a API sem configurar banco, HTTPS, usuário administrador e backups.
 6. Abra o domínio em janela anônima e teste desktop, celular, navegação, filtros, modais e links externos.
 7. Verifique `https://www.fixxarestudios.com.br/robots.txt` e `https://www.fixxarestudios.com.br/sitemap.xml`.
 
@@ -45,4 +45,4 @@ Para cada atualização, gere novamente a pasta `dist/`, faça backup da versão
 
 ## Limitações intencionais
 
-O portal é institucional e direciona visitantes aos universos de negócio. Não possui formulário de contato, cadastro, login, pagamentos ou banco de dados porque nenhum canal oficial ou fluxo operacional foi confirmado. Não invente e-mails, telefones, endereços ou links para preencher essa lacuna.
+O portal público ainda não possui formulário de contato conectado. A API administrativa já tem base de autenticação, controle de papéis, CSRF, auditoria e operações de conteúdo, mas o frontend do painel continua em modo de demonstração até ser integrado e validado no servidor. Não invente e-mails, telefones, endereços ou links para preencher lacunas.
