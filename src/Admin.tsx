@@ -8,10 +8,10 @@ import {
 } from "lucide-react";
 import { pillars, universes, type Universe } from "./data";
 import "./admin.css";
-import { getAdminSession, loginAdmin } from "./adminApi";
+import { getAdminSession, loginAdmin, loadAdminData, saveHomePage, saveBrand, updateContactStatus, saveSiteSettings, logoutAdmin, type AdminUser } from "./adminApi";
 
 type Section = "overview" | "pages" | "universes" | "messages" | "media" | "analytics" | "settings";
-type Message = { id:number; name:string; email:string; subject:string; date:string; status:"Novo"|"Em atendimento"|"Concluído"; excerpt:string };
+type Message = { id:number; name:string; email:string; subject:string; date:string; status:"Novo"|"Em atendimento"|"Concluído"|"Arquivado"; excerpt:string };
 const initialMessages: Message[] = [
   {id:1,name:"Contato institucional",email:"contato@exemplo.com",subject:"Apresentação de projeto",date:"Hoje, 09:42",status:"Novo",excerpt:"Gostaria de conhecer melhor as possibilidades de parceria com o grupo."},
   {id:2,name:"Solicitação comercial",email:"projetos@exemplo.com",subject:"Projeto de comunicação",date:"Ontem, 16:18",status:"Em atendimento",excerpt:"Estamos estruturando um projeto e gostaríamos de conversar com a equipe."},
@@ -35,7 +35,7 @@ function Metric({label,value,change,icon:Icon,caption}:{label:string;value:strin
   return <article className="admin-metric"><div className="metric-top"><span>{label}</span><i><Icon size={17}/></i></div><strong>{value}</strong><div className="metric-bottom"><span className="metric-change"><ArrowUpRight size={13}/>{change}</span><small>{caption}</small></div></article>;
 }
 
-function AdminDashboard() {
+function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser|null; onLogout:()=>void }) {
   const [section,setSection]=useState<Section>("overview");
   const [sidebarOpen,setSidebarOpen]=useState(false);
   const [query,setQuery]=useState("");
@@ -50,6 +50,7 @@ function AdminDashboard() {
   const unread=messages.filter(m=>m.status==="Novo").length;
 
   useEffect(()=>{document.title="Painel de controle | FIXXAR GROUP";},[]);
+  useEffect(()=>{if(!live)return;loadAdminData().then(data=>{const home=data.pages.find(page=>page.slug==="home")?.content;if(home)setPageDraft({headline:home.headline||"",subheadline:home.subheadline||"",intro:home.intro||""});setBrandData(data.universes.map(item=>({id:item.slug,name:item.name,eyebrow:item.eyebrow,description:item.description,detail:item.detail,category:item.category as Universe["category"],status:item.status==="archived"?"in-development":item.status,url:item.website_url||undefined})));setMessages(data.messages.map(item=>({id:item.id,name:item.name,email:item.email,subject:item.subject,date:new Date(item.created_at).toLocaleString("pt-BR"),status:({new:"Novo",in_progress:"Em atendimento",done:"Concluído",archived:"Arquivado"} as const)[item.status],excerpt:item.message})));const saved=Object.fromEntries(data.settings.map(item=>[item.setting_key,item.value]));setSettings(current=>({...current,siteName:String(saved.site_name??current.siteName),email:String(saved.contact_email??current.email),seoTitle:String(saved.seo_title??current.seoTitle),description:String(saved.seo_description??current.description),maintenance:Boolean(saved.maintenance??current.maintenance)}));}).catch(()=>notify("Falha ao carregar dados do servidor."));},[live]);
   function notify(message:string){setToast(message);window.setTimeout(()=>setToast(""),2800);}
   function saveBrands(next:Universe[]){setBrandData(next);localStorage.setItem("fixxar-admin-universes",JSON.stringify(next));setLastSaved("Salvo neste navegador");notify("Alterações salvas no rascunho local.");}
   function savePage(){localStorage.setItem("fixxar-admin-home-copy",JSON.stringify(pageDraft));setLastSaved("Salvo neste navegador");notify("Conteúdo salvo como rascunho local.");}
