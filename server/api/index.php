@@ -217,6 +217,64 @@ try {
 
     $admin = requireAdmin($pdo);
 
+    if ($path === '/admin/users' && $method === 'GET') {
+        requireRole($admin, ['owner','administrator']);
+        $users = $pdo->query('SELECT id,name,email,role,is_active,last_login_at,created_at FROM admin_users ORDER BY name,id')->fetchAll();
+        respond(200, ['users'=>$users]);
+    }
+
+    if ($path === '/admin/users' && $method === 'POST') {
+        requireCsrf(); requireRole($admin, ['owner']);
+        $input = body();
+        $name = trim((string)($input['name'] ?? ''));
+        $email = strtolower(trim((string)($input['email'] ?? '')));
+        $password = (string)($input['password'] ?? '');
+        $role = (string)($input['role'] ?? 'editor');
+        if ($name === '' || mb_strlen($name) > 120 || !filter_var($email,FILTER_VALIDATE_EMAIL) || mb_strlen($email)>190 ||
+            strlen($password)<14 || strlen($password)>4096 || !in_array($role,['administrator','editor','support'],true)) {
+            respond(422,['error'=>'invalid_admin_user']);
+        }
+        $exists=$pdo->prepare('SELECT id FROM admin_users WHERE email=? LIMIT 1');
+        $exists->execute([$email]);
+        if ($exists->fetch()) respond(409,['error'=>'email_already_exists']);
+        $hash=password_hash($password,PASSWORD_ARGON2ID);
+        $q=$pdo->prepare('INSERT INTO admin_users (name,email,password_hash,role,is_active) VALUES (?,?,?,?,1)');
+        $q->execute([$name,$email,$hash,$role]);
+        $id=(int)$pdo->lastInsertId();
+        audit($pdo,$admin,'admin_user.create','admin_user',(string)$id);
+        respond(201,['ok'=>true,'user'=>['id'=>$id,'name'=>$name,'email'=>$email,'role'=>$role,'is_active'=>1,'last_login_at'=>null]]);
+    }
+
+    if (preg_match('#^/admin/users/(\\d+)$#',$path,$match) && $method === 'PATCH') {
+        requireCsrf(); requireRole($admin,['owner']);
+        $id=(int)$match[1];
+        $input=body();
+        $targetQuery=$pdo->prepare('SELECT id,name,email,role,is_active FROM admin_users WHERE id=? LIMIT 1');
+        $targetQuery->execute([$id]);
+        $target=$targetQuery->fetch();
+        if (!$target) respond(404,['error'=>'admin_user_not_found']);
+        $name=trim((string)($input['name']??$target['name']));
+        $role=(string)($input['role']??$target['role']);
+        $active=array_key_exists('is_active',$input)?(int)(bool)$input['is_active']:(int)$target['is_active'];
+        $password=(string)($input['password']??'');
+        if ($name==='' || mb_strlen($name)>120 || !in_array($role,['owner','administrator','editor','support'],true) || !in_array($active,[0,1],true) ||
+            ($password!=='' && (strlen($password)<14 || strlen($password)>4096))) respond(422,['error'=>'invalid_admin_user']);
+        if ($id===(int)$admin['id'] && ($active===0 || $role!=='owner')) respond(422,['error'=>'cannot_change_own_owner_access']);
+        if ($target['role']==='owner' && ($role!=='owner' || $active===0)) {
+            $owners=(int)$pdo->query("SELECT COUNT(*) FROM admin_users WHERE role='owner' AND is_active=1")->fetchColumn();
+            if ($owners<=1) respond(409,['error'=>'last_active_owner_required']);
+        }
+        if ($password!=='') {
+            $q=$pdo->prepare('UPDATE admin_users SET name=?,role=?,is_active=?,password_hash=? WHERE id=?');
+            $q->execute([$name,$role,$active,password_hash($password,PASSWORD_ARGON2ID),$id]);
+        } else {
+            $q=$pdo->prepare('UPDATE admin_users SET name=?,role=?,is_active=? WHERE id=?');
+            $q->execute([$name,$role,$active,$id]);
+        }
+        audit($pdo,$admin,'admin_user.update','admin_user',(string)$id);
+        respond(200,['ok'=>true]);
+    }
+
     if ($path === '/admin/bootstrap' && $method === 'GET') {
         $pages = $pdo->query('SELECT slug,title,content_json,status,updated_at FROM content_pages ORDER BY slug')->fetchAll();
         foreach ($pages as &$page) $page['content'] = jsonColumn($page, 'content_json');
