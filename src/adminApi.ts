@@ -68,3 +68,7 @@ export const updateAdminUser = (id:number,data:{name?:string;role?:string;is_act
 
 export type AdminAuditEntry = { id:number; action:string; entity_type:string; entity_id:string|null; created_at:string; admin_name:string|null; admin_email:string|null };
 export const loadAdminAuditLog = async () => (await request<{entries:AdminAuditEntry[]}>("/admin/audit-log?limit=150")).entries;
+
+export type ManagedContentPage = { slug:string; title:string; content: { summary?:string; content?:string; [key:string]:unknown }; status:"draft"|"published"; updated_at?:string };
+export const saveInstitutionalPage = (slug:string,data:{title:string;summary:string;content:string}) => request<{ok:boolean;slug:string;status:"draft"}>(`/admin/pages/${encodeURIComponent(slug)}`,"PUT",data);
+export const publishInstitutionalPage = (slug:string) => request<{ok:boolean;status:"published"}>(`/admin/pages/${encodeURIComponent(slug)}/publish`,"POST",{});
