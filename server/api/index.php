@@ -212,11 +212,17 @@ try {
     if ($path === '/admin/pages/home' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $input = body();
-        $allowed = ['headline','subheadline','intro'];
+        $allowed = ['headline','subheadline','intro','groupHeadline','groupLead','groupBody','processHeadline','processIntro'];
         $content = [];
         foreach ($allowed as $key) {
             if (!isset($input[$key]) || !is_string($input[$key]) || mb_strlen($input[$key]) > 3000) respond(422, ['error'=>'invalid_page_content','field'=>$key]);
             $content[$key] = trim($input[$key]);
+        }
+        if (!isset($input['processSteps']) || !is_array($input['processSteps']) || count($input['processSteps']) !== 4) respond(422, ['error'=>'invalid_process_steps']);
+        $content['processSteps'] = [];
+        foreach ($input['processSteps'] as $index => $step) {
+            if (!is_array($step) || !is_string($step['title'] ?? null) || !is_string($step['text'] ?? null) || mb_strlen($step['title']) > 80 || mb_strlen($step['text']) > 500) respond(422, ['error'=>'invalid_process_step','index'=>$index]);
+            $content['processSteps'][] = ['title'=>trim($step['title']),'text'=>trim($step['text'])];
         }
         $q = $pdo->prepare("INSERT INTO content_pages (slug,title,content_json,status,updated_by) VALUES ('home','Página inicial',?,'draft',?) ON DUPLICATE KEY UPDATE content_json=VALUES(content_json),status='draft',updated_by=VALUES(updated_by)");
         $q->execute([json_encode($content, JSON_UNESCAPED_UNICODE), (int)$admin['id']]);
