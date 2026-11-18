@@ -8,7 +8,7 @@ declare(strict_types=1);
 return [
     'app_origin' => 'https://www.fixxarestudios.com.br',
     'session_name' => 'fixxar_admin',
-    'session_secure' => true,
+    'session_secure' => true,\n    'security_key' => 'REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS',
     'database' => [
         'host' => 'localhost',
         'port' => 3306,
