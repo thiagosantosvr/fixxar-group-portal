@@ -90,3 +90,17 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
   INDEX idx_audit_date (created_at),
   INDEX idx_audit_entity (entity_type, entity_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Initial institutional content. INSERT IGNORE keeps re-imports non-destructive.
+INSERT IGNORE INTO brand_universes
+(slug,name,eyebrow,description,detail,category,website_url,status,sort_order)
+VALUES
+('agencia','Fixxar Agência','Estratégia & comunicação','Marcas, experiências e presença digital construídas com intenção.','Estratégia, comunicação, branding e soluções digitais.','Estratégia','https://agencia.fixxarestudios.com.br','active',1),
+('fotografia','Fixxar Fotografia','Imagem & experiência','Fotografia profissional, histórias e experiências que permanecem.','Fotografia profissional, álbuns e formação.','Imagem','https://thiago.fixxarestudios.com.br','active',2),
+('editora','Entre o Céu e Papel','Projetos editoriais','Ideias transformadas em livros, conhecimento e memória.','Editora independente, projetos editoriais e consultoria acadêmica.','Editorial',NULL,'in-development',3),
+('tio-moises','Tio Moisés','Universo infantil','Histórias, conteúdos educativos e experiências para crianças.','Conteúdo educativo, histórias, personagens e experiências.','Infantil',NULL,'in-development',4),
+('brindes','Fixxar Brindes','Personalização','Ideias que ganham forma em produtos e presentes personalizados.','Brindes e soluções de personalização.','Personalização',NULL,'in-development',5);
+
+INSERT IGNORE INTO content_pages (slug,title,content_json,status)
+VALUES ('home','Página inicial','{"headline":"Ideias que ganham forma.","subheadline":"Marcas que deixam marcas.","intro":"Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado."}','published');
