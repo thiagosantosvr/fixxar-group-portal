@@ -40,7 +40,6 @@ export default function Admin() {
   const [query,setQuery]=useState("");
   const [brandData,setBrandData]=useState<Universe[]>(()=>readSaved("fixxar-admin-universes",universes));
   const [messages,setMessages]=useState<Message[]>(()=>readSaved("fixxar-admin-messages",initialMessages));
-  const [selected,setSelected]=useState<string|null>(null);
   const [toast,setToast]=useState("");
   const [editing,setEditing]=useState<Universe|null>(null);
   const [pageDraft,setPageDraft]=useState(()=>readSaved("fixxar-admin-home-copy",{headline:"Ideias que ganham forma.",subheadline:"Marcas que deixam marcas.",intro:"Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado."}));
