@@ -313,6 +313,7 @@ try {
     if (preg_match('#^/admin/pages/(?!home$)([a-z0-9-]{2,100})$#', $path, $match) && $method === 'PUT') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $slug = $match[1];
+        if (in_array($slug, ['api','painel','assets','storage','server'], true)) respond(422, ['error'=>'reserved_page_slug']);
         $input = body();
         $title = trim((string)($input['title'] ?? ''));
         $summary = trim((string)($input['summary'] ?? ''));
@@ -330,6 +331,7 @@ try {
     if (preg_match('#^/admin/pages/(?!home/)([a-z0-9-]{2,100})/publish$#', $path, $match) && $method === 'POST') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $slug = $match[1];
+        if (in_array($slug, ['api','painel','assets','storage','server'], true)) respond(422, ['error'=>'reserved_page_slug']);
         $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug=?");
         $q->execute([(int)$admin['id'],$slug]);
         if (!$q->rowCount()) respond(404,['error'=>'page_not_found']);
