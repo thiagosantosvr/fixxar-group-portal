@@ -337,9 +337,16 @@ try {
             respond(422, ['error'=>'invalid_page_content']);
         }
         $payload = ['summary'=>$summary,'content'=>$content];
-        $q = $pdo->prepare("INSERT INTO content_pages (slug,title,content_json,status,updated_by) VALUES (?,?,?,'draft',?) ON DUPLICATE KEY UPDATE title=VALUES(title),content_json=VALUES(content_json),status='draft',updated_by=VALUES(updated_by)");
-        $q->execute([$slug,$title,json_encode($payload,JSON_UNESCAPED_UNICODE),(int)$admin['id']]);
-        audit($pdo,$admin,'page.save_draft','page',$slug);
+        try {
+            $pdo->beginTransaction();
+            $q = $pdo->prepare("INSERT INTO content_pages (slug,title,content_json,status,updated_by) VALUES (?,?,?,'draft',?) ON DUPLICATE KEY UPDATE title=VALUES(title),content_json=VALUES(content_json),status='draft',updated_by=VALUES(updated_by)");
+            $q->execute([$slug,$title,json_encode($payload,JSON_UNESCAPED_UNICODE),(int)$admin['id']]);
+            audit($pdo,$admin,'page.save_draft','page',$slug);
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $error;
+        }
         respond(200,['ok'=>true,'slug'=>$slug,'status'=>'draft']);
     }
 
@@ -347,12 +354,19 @@ try {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $slug = $match[1];
         if (in_array($slug, ['api','painel','assets','storage','server'], true)) respond(422, ['error'=>'reserved_page_slug']);
-        $exists = $pdo->prepare('SELECT id FROM content_pages WHERE slug=? LIMIT 1');
-        $exists->execute([$slug]);
-        if (!$exists->fetch()) respond(404,['error'=>'page_not_found']);
-        $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug=?");
-        $q->execute([(int)$admin['id'],$slug]);
-        audit($pdo,$admin,'page.publish','page',$slug);
+        try {
+            $pdo->beginTransaction();
+            $exists = $pdo->prepare('SELECT id FROM content_pages WHERE slug=? LIMIT 1 FOR UPDATE');
+            $exists->execute([$slug]);
+            if (!$exists->fetch()) { $pdo->rollBack(); respond(404,['error'=>'page_not_found']); }
+            $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug=?");
+            $q->execute([(int)$admin['id'],$slug]);
+            audit($pdo,$admin,'page.publish','page',$slug);
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $error;
+        }
         respond(200,['ok'=>true,'status'=>'published']);
     }
 
@@ -371,19 +385,33 @@ try {
             if (!is_array($step) || !is_string($step['title'] ?? null) || !is_string($step['text'] ?? null) || mb_strlen($step['title']) > 80 || mb_strlen($step['text']) > 500) respond(422, ['error'=>'invalid_process_step','index'=>$index]);
             $content['processSteps'][] = ['title'=>trim($step['title']),'text'=>trim($step['text'])];
         }
-        $q = $pdo->prepare("INSERT INTO content_pages (slug,title,content_json,status,updated_by) VALUES ('home','Página inicial',?,'draft',?) ON DUPLICATE KEY UPDATE content_json=VALUES(content_json),status='draft',updated_by=VALUES(updated_by)");
-        $q->execute([json_encode($content, JSON_UNESCAPED_UNICODE), (int)$admin['id']]);
-        audit($pdo, $admin, 'page.save_draft', 'page', 'home');
+        try {
+            $pdo->beginTransaction();
+            $q = $pdo->prepare("INSERT INTO content_pages (slug,title,content_json,status,updated_by) VALUES ('home','Página inicial',?,'draft',?) ON DUPLICATE KEY UPDATE content_json=VALUES(content_json),status='draft',updated_by=VALUES(updated_by)");
+            $q->execute([json_encode($content, JSON_UNESCAPED_UNICODE), (int)$admin['id']]);
+            audit($pdo, $admin, 'page.save_draft', 'page', 'home');
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $error;
+        }
         respond(200, ['ok'=>true,'status'=>'draft']);
     }
 
     if ($path === '/admin/pages/home/publish' && $method === 'POST') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
-        $exists = $pdo->query("SELECT id FROM content_pages WHERE slug='home' LIMIT 1");
-        if (!$exists->fetch()) respond(404, ['error'=>'page_not_found']);
-        $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug='home'");
-        $q->execute([(int)$admin['id']]);
-        audit($pdo, $admin, 'page.publish', 'page', 'home');
+        try {
+            $pdo->beginTransaction();
+            $exists = $pdo->query("SELECT id FROM content_pages WHERE slug='home' LIMIT 1 FOR UPDATE");
+            if (!$exists->fetch()) { $pdo->rollBack(); respond(404, ['error'=>'page_not_found']); }
+            $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug='home'");
+            $q->execute([(int)$admin['id']]);
+            audit($pdo, $admin, 'page.publish', 'page', 'home');
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $error;
+        }
         respond(200, ['ok'=>true,'status'=>'published']);
     }
 
