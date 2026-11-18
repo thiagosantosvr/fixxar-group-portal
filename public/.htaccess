@@ -4,6 +4,9 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # Route API requests to the dedicated PHP front controller before the SPA fallback.
+  RewriteRule ^api(?:/.*)?$ server/api/index.php [QSA,L]
+
   # Preserve real files and directories (assets, favicon, SEO files).
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
