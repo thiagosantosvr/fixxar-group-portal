@@ -44,3 +44,49 @@
 
 /* Proprietary FIXXAR monogram emphasis */
 .hero-art-core b{font-size:.72em;align-self:center;margin:0 0 0 -.02em;line-height:1;color:var(--orange);text-shadow:0 0 28px #ff751f70}
+
+
+/* Individual visual languages for each FIXXAR universe */
+.universe-artwork{height:132px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;margin:22px 0 15px;background:linear-gradient(135deg,#242424,#151515);isolation:isolate}
+.universe-artwork:before,.universe-artwork:after{content:'';position:absolute;inset:14%;border:1px solid #ffffff18;z-index:-1}
+.universe-artwork:after{inset:24%;border-color:#ff751f35;transform:rotate(18deg)}
+.art-shape{position:absolute;display:block;pointer-events:none}
+.art-monogram{font:800 76px/1 Manrope,sans-serif;letter-spacing:-.1em;color:#f5f3ef;text-shadow:0 12px 35px #000;z-index:1}
+.art-caption{position:absolute;bottom:12px;right:14px;font-size:7px;letter-spacing:.22em;color:#aaa}
+.artwork-agencia{background:linear-gradient(125deg,#252525 0 48%,#191919 48%)}
+.artwork-agencia:before{inset:0 12%;border:0;border-left:1px solid #ffffff20;border-right:1px solid #ffffff20}
+.artwork-agencia .shape-one{width:68%;height:1px;background:#ff751f;transform:rotate(-28deg)}
+.artwork-agencia .shape-two{width:34%;height:70%;border:1px solid #ffffff40;transform:skew(-28deg) translateX(38px)}
+.artwork-agencia .shape-three{width:8px;height:8px;background:#ff751f;right:20%;top:23%;box-shadow:0 0 20px #ff751f}
+.artwork-agencia .art-monogram{font-size:68px}
+.artwork-fotografia{background:radial-gradient(circle at 50% 50%,#494949,#171717 65%)}
+.artwork-fotografia:before{inset:13%;border-radius:50%;border:1px solid #ffffff45}
+.artwork-fotografia:after{inset:23%;border-radius:50%;border:1px dashed #ff751f90;transform:none}
+.artwork-fotografia .shape-one{width:42%;aspect-ratio:1;border:1px solid #ffffff60;border-radius:50%;box-shadow:0 0 0 12px #ffffff08,0 0 0 24px #ffffff06}
+.artwork-fotografia .shape-two{width:15%;aspect-ratio:1;border-radius:50%;background:#ff751f;box-shadow:0 0 28px #ff751f80}
+.artwork-fotografia .shape-three{width:65%;height:1px;background:#ffffff30;transform:rotate(35deg)}
+.artwork-fotografia .art-monogram{font-size:0}
+.artwork-editora{background:linear-gradient(145deg,#302d29,#171614)}
+.artwork-editora:before{inset:14% 28% 12% 28%;background:#f0ece3;border:0;transform:rotate(-7deg);box-shadow:8px 7px 0 #c9c1b3,16px 14px 0 #ff751f55}
+.artwork-editora:after{inset:20% 35% 18% 35%;border-color:#24211d;transform:rotate(-7deg)}
+.artwork-editora .shape-one{width:18%;height:2px;background:#b2a99a;top:39%;left:42%;transform:rotate(-7deg)}
+.artwork-editora .shape-two{width:14%;height:2px;background:#b2a99a;top:48%;left:42%;transform:rotate(-7deg)}
+.artwork-editora .shape-three{width:11%;height:2px;background:#ff751f;top:57%;left:42%;transform:rotate(-7deg)}
+.artwork-editora .art-monogram{color:#211f1b;font:700 38px Georgia,serif;transform:translateY(-3px)}
+.artwork-tio-moises{background:radial-gradient(circle at 50% 45%,#30302c,#171717 70%)}
+.artwork-tio-moises:before{inset:20%;border-radius:50%;border:1px solid #ffffff30}
+.artwork-tio-moises:after{inset:30%;border-radius:50%;border:1px dashed #ffb16e80;transform:none}
+.artwork-tio-moises .shape-one{width:16px;height:16px;border-radius:50%;background:#ff751f;top:25%;left:28%;box-shadow:0 0 22px #ff751f80}
+.artwork-tio-moises .shape-two{width:10px;height:10px;border-radius:50%;background:#f5f3ef;right:26%;top:31%}
+.artwork-tio-moises .shape-three{width:12px;height:12px;border:1px solid #ffb16e;border-radius:50%;left:30%;bottom:23%}
+.artwork-tio-moises .art-monogram{font-size:62px;color:#ffb16e}
+.artwork-brindes{background:linear-gradient(145deg,#282828,#151515)}
+.artwork-brindes:before{inset:24% 34%;border:1px solid #ffffff50;transform:skewY(-28deg) rotate(30deg)}
+.artwork-brindes:after{inset:23% 34%;border:1px solid #ff751f;transform:skewY(28deg) rotate(30deg)}
+.artwork-brindes .shape-one{width:26%;height:36%;border:1px solid #ffffff70;transform:skewY(-28deg) rotate(30deg);background:linear-gradient(135deg,#ffffff12,transparent)}
+.artwork-brindes .shape-two{width:2px;height:48%;background:#ff751f;transform:rotate(30deg)}
+.artwork-brindes .shape-three{width:24%;height:2px;background:#ff751f;transform:rotate(-28deg) translateY(-16px)}
+.artwork-brindes .art-monogram{font-size:0}
+.universe-artwork.is-compact{height:180px;margin:0 0 30px}
+.detail-modal .universe-artwork{background-color:#242424}
+@media(max-width:640px){.universe-artwork{height:120px}.universe-artwork.is-compact{height:145px}}
