@@ -17,12 +17,12 @@ function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolea
 function PublicPortal() {
   const [contact, setContact] = useState({ name: "", email: "", subject: "", message: "", website: "" });
   const [publicUniverses, setPublicUniverses] = useState(universes);
-  const [portalCopy, setPortalCopy] = useState({ headline: "Ideias que ganham forma.", subheadline: "Marcas que deixam marcas.", intro: "Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado." });
+  const [portalCopy, setPortalCopy] = useState({ headline: "Ideias que ganham forma.", subheadline: "Marcas que deixam marcas.", intro: "Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.", groupHeadline: "Um grupo. Muitas formas de transformar.", groupLead: "A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.", groupBody: "Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.", processHeadline: "O movimento por trás da ideia.", processIntro: "Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.", processSteps: [{title:"Imaginar",text:"Enxergar possibilidades e descobrir o que ainda pode existir."},{title:"Construir",text:"Dar estrutura, linguagem e intenção para cada projeto."},{title:"Conectar",text:"Aproximar ideias, pessoas e experiências que fazem sentido."},{title:"Transformar",text:"Levar o que foi imaginado para o mundo real."}] });
   useEffect(() => {
     let active = true;
     fetch("/api/public/content", { headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(response => { if (!response.ok) throw new Error("Public content unavailable"); return response.json(); })
-      .then((data: { page?: { content?: { headline?: string; subheadline?: string; intro?: string } } | null; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string }> }) => {
+      .then((data: { page?: { content?: Partial<typeof portalCopy> } | null; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string }> }) => {
         if (!active) return;
         if (data.page?.content) setPortalCopy(current => ({ ...current, ...data.page?.content }));
         if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "active" ? "active" : "in-development" })));
@@ -135,7 +135,7 @@ function PublicPortal() {
 
       <section className="manifesto section-pad" id="grupo">
         <div className="section-kicker"><span>01</span><span>O GRUPO</span></div>
-        <div className="manifesto-grid"><h2>Um grupo.<br /><span>Muitas formas</span><br />de transformar.</h2><div className="manifesto-text"><p className="lead">A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.</p><p>Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.</p><a className="text-link dark-link" href="#essencia">Conheça nossa essência <ArrowRight size={17} /></a></div></div>
+        <div className="manifesto-grid"><h2>{portalCopy.groupHeadline}</h2><div className="manifesto-text"><p className="lead">{portalCopy.groupLead}</p><p>{portalCopy.groupBody}</p><a className="text-link dark-link" href="#essencia">Conheça nossa essência <ArrowRight size={17} /></a></div></div>
       </section>
 
       <section className="universes section-pad" id="universos">
@@ -150,13 +150,8 @@ function PublicPortal() {
 
       <section className="process section-pad" id="processo">
         <div className="section-kicker"><span>03</span><span>DO PENSAMENTO À REALIDADE</span></div>
-        <div className="process-intro"><h2>O movimento<br /><em>por trás da ideia.</em></h2><p>Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.</p></div>
-        <div className="process-track">
-          <article><span>01</span><h3>Imaginar</h3><p>Enxergar possibilidades e descobrir o que ainda pode existir.</p></article>
-          <article><span>02</span><h3>Construir</h3><p>Dar estrutura, linguagem e intenção para cada projeto.</p></article>
-          <article><span>03</span><h3>Conectar</h3><p>Aproximar ideias, pessoas e experiências que fazem sentido.</p></article>
-          <article><span>04</span><h3>Transformar</h3><p>Levar o que foi imaginado para o mundo real.</p></article>
-        </div>
+        <div className="process-intro"><h2>{portalCopy.processHeadline}</h2><p>{portalCopy.processIntro}</p></div>
+        <div className="process-track">{portalCopy.processSteps.map((step,index)=><article key={index}><span>0{index+1}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
       </section>
 
       <section className="essence section-pad" id="essencia">
