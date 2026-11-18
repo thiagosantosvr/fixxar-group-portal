@@ -15,7 +15,7 @@ const checks = [
   ["links institucionais entram na navegação", app.includes("publishedPages.map")],
   ["API consulta somente páginas publicadas", /slug=\? AND status='published'/.test(api)],
   ["API publica lista sem incluir home", /status='published' AND slug<>'home'/.test(api)],
-  ["API valida slug e bloqueia home", /\^\[a-z0-9-\]\{2,100\}\$/.test(api) && /\$slug === 'home'/.test(api)],
+  ["API valida slug e bloqueia home", api.includes("^[a-z0-9-]{2,100}$") && /\$slug === 'home'/.test(api)],
   ["API protege slugs reservados", api.includes("reserved_page_slug") && ["api","painel","assets","storage","server"].every(s => api.includes(`'${s}'`))],
   ["API não retorna rascunhos", /status='published'/.test(api)],
   ["Apache encaminha API antes do fallback SPA", rewrite.indexOf("RewriteRule ^api") < rewrite.indexOf("RewriteRule ^ index.html")],
