@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { pillars, universes, type Universe } from "./data";
 import "./admin.css";
-import { getAdminSession, loginAdmin, loadAdminData, saveHomePage, saveBrand, updateContactStatus, saveSiteSettings, publishHomePage, uploadAdminMedia, deleteAdminMedia, type AdminMediaAsset, type AdminUser } from "./adminApi";
+import { getAdminSession, loginAdmin, loadAdminData, saveHomePage, saveBrand, updateContactStatus, saveSiteSettings, publishHomePage, uploadAdminMedia, deleteAdminMedia, logoutAdmin, type AdminMediaAsset, type AdminUser } from "./adminApi";
 
 type Section = "overview" | "pages" | "universes" | "messages" | "media" | "analytics" | "settings";
 type Message = { id:number; name:string; email:string; subject:string; date:string; status:"Novo"|"Em atendimento"|"Concluído"|"Arquivado"; excerpt:string };
