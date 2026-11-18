@@ -23,7 +23,7 @@ if ($origin !== '' && hash_equals((string)$config['app_origin'], $origin)) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, OPTIONS');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 }
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') { http_response_code(204); exit; }
 
@@ -171,6 +171,19 @@ try {
         respond(201, ['ok'=>true]);
     }
 
+    if (preg_match('#^/media/([a-f0-9]{32}\\.(?:jpg|png|webp))$#', $path, $match) && $method === 'GET') {
+        $q = $pdo->prepare('SELECT storage_name,mime_type FROM media_assets WHERE storage_name=? LIMIT 1');
+        $q->execute([$match[1]]);
+        $asset = $q->fetch();
+        $file = dirname(__DIR__) . '/storage/media/' . $match[1];
+        if (!$asset || !is_file($file)) respond(404, ['error'=>'media_not_found']);
+        header('Content-Type: ' . $asset['mime_type']);
+        header('Content-Length: ' . (string)filesize($file));
+        header('Cache-Control: public, max-age=31536000, immutable');
+        readfile($file);
+        exit;
+    }
+
     if ($path === '/public/content' && $method === 'GET') {
         $pageQuery = $pdo->prepare("SELECT title,content_json,updated_at FROM content_pages WHERE slug='home' AND status='published' LIMIT 1");
         $pageQuery->execute();
@@ -190,9 +203,10 @@ try {
         $brands = $pdo->query('SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order,updated_at FROM brand_universes ORDER BY sort_order,id')->fetchAll();
         $messages = $pdo->query('SELECT id,name,email,subject,message,status,created_at,updated_at FROM contact_messages ORDER BY created_at DESC LIMIT 100')->fetchAll();
         $settings = $pdo->query('SELECT setting_key,setting_value FROM site_settings ORDER BY setting_key')->fetchAll();
+        $media = $pdo->query('SELECT id,original_name,storage_name,mime_type,file_size,alt_text,created_at FROM media_assets ORDER BY created_at DESC LIMIT 200')->fetchAll();
         foreach ($settings as &$setting) $setting['value'] = json_decode((string)$setting['setting_value'], true);
         unset($setting);
-        respond(200, ['user'=>$admin,'pages'=>$pages,'universes'=>$brands,'messages'=>$messages,'settings'=>$settings]);
+        respond(200, ['user'=>$admin,'pages'=>$pages,'universes'=>$brands,'messages'=>$messages,'settings'=>$settings,'media'=>$media]);
     }
 
     if ($path === '/admin/pages/home' && $method === 'PATCH') {
@@ -244,6 +258,44 @@ try {
         $q->execute([$map[$status],(int)$match[1]]);
         if (!$q->rowCount()) respond(404,['error'=>'message_not_found']);
         audit($pdo,$admin,'message.status','contact_message',$match[1]);
+        respond(200,['ok'=>true]);
+    }
+
+    if ($path === '/admin/media' && $method === 'POST') {
+        requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
+        if (empty($_FILES['file']) || !is_array($_FILES['file'])) respond(422, ['error'=>'file_required']);
+        $upload = $_FILES['file'];
+        if (($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($upload['tmp_name'] ?? '')) respond(422, ['error'=>'upload_failed']);
+        $size = (int)($upload['size'] ?? 0);
+        if ($size < 1 || $size > 10 * 1024 * 1024) respond(413, ['error'=>'file_too_large']);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($upload['tmp_name']);
+        $extensions = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
+        if (!isset($extensions[$mime])) respond(415, ['error'=>'unsupported_file_type']);
+        $storageName = bin2hex(random_bytes(16)) . '.' . $extensions[$mime];
+        $directory = dirname(__DIR__) . '/storage/media';
+        if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory)) respond(500, ['error'=>'storage_unavailable']);
+        $destination = $directory . '/' . $storageName;
+        if (!move_uploaded_file($upload['tmp_name'], $destination)) respond(500, ['error'=>'storage_write_failed']);
+        $original = mb_substr(basename((string)($upload['name'] ?? 'imagem')), 0, 255);
+        $alt = trim((string)($_POST['alt_text'] ?? ''));
+        $q = $pdo->prepare('INSERT INTO media_assets (original_name,storage_name,mime_type,file_size,alt_text,uploaded_by) VALUES (?,?,?,?,?,?)');
+        $q->execute([$original,$storageName,$mime,$size,mb_substr($alt,0,255),(int)$admin['id']]);
+        $id = (int)$pdo->lastInsertId();
+        audit($pdo,$admin,'media.upload','media_asset',(string)$id);
+        respond(201,['ok'=>true,'asset'=>['id'=>$id,'original_name'=>$original,'storage_name'=>$storageName,'mime_type'=>$mime,'file_size'=>$size,'alt_text'=>$alt,'url'=>'/api/media/'.$storageName]]);
+    }
+
+    if (preg_match('#^/admin/media/(\\d+)$#', $path, $match) && $method === 'DELETE') {
+        requireCsrf(); requireRole($admin, ['owner','administrator']);
+        $q=$pdo->prepare('SELECT storage_name FROM media_assets WHERE id=? LIMIT 1');
+        $q->execute([(int)$match[1]]);
+        $asset=$q->fetch();
+        if (!$asset) respond(404,['error'=>'media_not_found']);
+        $pdo->prepare('DELETE FROM media_assets WHERE id=?')->execute([(int)$match[1]]);
+        $file=dirname(__DIR__).'/storage/media/'.$asset['storage_name'];
+        if (is_file($file)) unlink($file);
+        audit($pdo,$admin,'media.delete','media_asset',$match[1]);
         respond(200,['ok'=>true]);
     }
 
