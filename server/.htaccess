@@ -1,7 +1,8 @@
-# Protect the private configuration file without blocking the API front controller.
-<Files "config.php">
+# Deny direct HTTP access to private configuration and deployment/source files.
+<FilesMatch "^(config\.php|config\.example\.php|.*\.(sql|md))$">
   Require all denied
-</Files>
+</FilesMatch>
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
