@@ -65,14 +65,14 @@ function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser
       <nav className="admin-nav" aria-label="Menu do painel">
         {menuItems.map((item,index)=><div key={item.id}>{(index===0||menuItems[index-1].group!==item.group)&&<p className="admin-nav-label">{item.group}</p>}<button className={section===item.id?"admin-nav-item active":"admin-nav-item"} onClick={()=>{setSection(item.id);setSidebarOpen(false);}}><item.icon size={17}/><span>{item.label}</span>{item.id==="messages"&&unread>0&&<b>{unread}</b>}</button></div>)}
       </nav>
-      <div className="admin-sidebar-bottom"><div className="admin-help"><CircleHelp size={17}/><span><b>Precisa de ajuda?</b><small>Consulte o guia do painel</small></span><ChevronRight size={14}/></div><div className="admin-user"><div className="user-avatar">TS</div><div><b>Administrador</b><small>Perfil de demonstração</small></div><button aria-label="Opções do perfil" onClick={()=>notify("Autenticação real ainda não configurada.")}><MoreHorizontal size={18}/></button></div></div>
+      <div className="admin-sidebar-bottom"><div className="admin-help"><CircleHelp size={17}/><span><b>Precisa de ajuda?</b><small>Consulte o guia do painel</small></span><ChevronRight size={14}/></div><div className="admin-user"><div className="user-avatar">TS</div><div><b>Administrador</b><small>{live?(user?.email||"Administrador"):"Perfil de demonstração"}</small></div><button aria-label="Opções do perfil" onClick={onLogout}><MoreHorizontal size={18}/></button></div></div>
     </aside>
     {sidebarOpen&&<button className="admin-scrim" aria-label="Fechar menu" onClick={()=>setSidebarOpen(false)}/>}
     <div className="admin-main">
-      <header className="admin-topbar"><button className="admin-mobile-menu" onClick={()=>setSidebarOpen(true)} aria-label="Abrir menu"><Menu/></button><div className="admin-breadcrumb">FIXXAR GROUP <ChevronRight size={14}/><b>{sectionTitles[section]}</b></div><div className="admin-top-actions"><span className="admin-env"><i/> AMBIENTE DE DEMONSTRAÇÃO</span><button className="admin-icon-button" aria-label="Notificações" onClick={()=>setSection("messages")}><Bell size={18}/>{unread>0&&<i/>}</button><a className="view-site" href="/" target="_blank" rel="noreferrer"><Eye size={15}/> Ver portal <ExternalLink size={13}/></a></div></header>
+      <header className="admin-topbar"><button className="admin-mobile-menu" onClick={()=>setSidebarOpen(true)} aria-label="Abrir menu"><Menu/></button><div className="admin-breadcrumb">FIXXAR GROUP <ChevronRight size={14}/><b>{sectionTitles[section]}</b></div><div className="admin-top-actions"><span className="admin-env"><i/> {live?"BANCO DE DADOS CONECTADO":"AMBIENTE DE DEMONSTRAÇÃO"}</span><button className="admin-icon-button" aria-label="Notificações" onClick={()=>setSection("messages")}><Bell size={18}/>{unread>0&&<i/>}</button><a className="view-site" href="/" target="_blank" rel="noreferrer"><Eye size={15}/> Ver portal <ExternalLink size={13}/></a></div></header>
       <main className="admin-content">
         <div className="admin-page-head"><div><p className="admin-overline">CENTRAL DE GESTÃO</p><h1>{sectionTitles[section]}</h1><p className="admin-page-sub">{section==="overview"?"Acompanhe o estado do portal e acesse as áreas de gestão.":"Gerencie o conteúdo e as informações do ecossistema FIXXAR."}</p></div><div className="admin-head-right"><span><i className="draft-dot"/> {lastSaved}</span><button className="admin-primary" onClick={exportBackup}><Save size={15}/> Exportar backup</button></div></div>
-        <div className="admin-demo-alert"><ShieldCheck size={17}/><p><b>Painel em modo de demonstração.</b> Os dados editados ficam salvos somente neste navegador. Login, banco de dados e publicação no site ainda precisam ser conectados antes do uso administrativo real.</p></div>
+        {!live&&<div className="admin-demo-alert"><ShieldCheck size={17}/><p><b>Painel em modo de demonstração.</b> API não configurada; dados salvos neste navegador.</p></div>}{live&&<div className="admin-live-alert"><ShieldCheck size={17}/> Sessão autenticada. Dados carregados do banco.</div>}
 
         {section==="overview"&&<div className="admin-overview">
           <div className="admin-welcome"><div><span>QUARTA-FEIRA · CENTRAL FIXXAR</span><h2>Bom dia. <em>Vamos construir?</em></h2><p>Seu ecossistema está organizado. Veja o que merece atenção hoje.</p></div><div className="welcome-orbit"><span>F</span><b>×</b></div></div>
@@ -86,7 +86,7 @@ function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser
 
         {section==="universes"&&<section className="admin-panel-card"><div className="panel-card-head"><div><h3>Cadastro de universos</h3><p>Gerencie apresentação, categoria, endereço e situação de cada marca.</p></div><button className="admin-primary" onClick={()=>setEditing({id:"novo-universo",name:"",eyebrow:"",description:"",detail:"",category:"Estratégia",status:"in-development"})}><Plus size={15}/> Novo universo</button></div><div className="admin-table-tools"><label><Search size={16}/><input placeholder="Buscar universo..." value={query} onChange={e=>setQuery(e.target.value)}/></label><span>{filteredBrands.length} registros</span></div><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>UNIVERSO</th><th>CATEGORIA</th><th>SITUAÇÃO</th><th>ENDEREÇO</th><th></th></tr></thead><tbody>{filteredBrands.map(b=><tr key={b.id}><td><b>{b.name}</b><small>{b.eyebrow}</small></td><td>{b.category}</td><td><span className={b.status==="active"?"status-pill live":"status-pill progress"}><i/>{b.status==="active"?"Ativo":"Em desenvolvimento"}</span></td><td>{b.url?<a href={b.url} target="_blank" rel="noreferrer">{b.url.replace("https://","")} <ExternalLink size={12}/></a>:"—"}</td><td><button className="row-edit" onClick={()=>setEditing({...b})}>Editar</button></td></tr>)}</tbody></table></div></section>}
 
-        {section==="messages"&&<section className="admin-panel-card"><div className="panel-card-head"><div><h3>Mensagens recebidas</h3><p>Central demonstrativa para organizar solicitações e contatos.</p></div><span className="status-pill progress">{unread} novas</span></div><div className="message-list">{messages.map(m=><article className="message-row" key={m.id}><div className="message-avatar">{m.name.slice(0,1)}</div><div className="message-content"><div><b>{m.name}</b><small>{m.email} · {m.date}</small></div><strong>{m.subject}</strong><p>{m.excerpt}</p></div><select aria-label={"Status de "+m.name} value={m.status} onChange={e=>updateMessage(m.id,e.target.value as Message["status"])}><option>Novo</option><option>Em atendimento</option><option>Concluído</option></select></article>)}</div><p className="admin-footnote">Os registros exibidos são exemplos de interface, não contatos reais recebidos pelo portal.</p></section>}
+        {section==="messages"&&<section className="admin-panel-card"><div className="panel-card-head"><div><h3>Mensagens recebidas</h3><p>Central demonstrativa para organizar solicitações e contatos.</p></div><span className="status-pill progress">{unread} novas</span></div><div className="message-list">{messages.map(m=><article className="message-row" key={m.id}><div className="message-avatar">{m.name.slice(0,1)}</div><div className="message-content"><div><b>{m.name}</b><small>{m.email} · {m.date}</small></div><strong>{m.subject}</strong><p>{m.excerpt}</p></div><select aria-label={"Status de "+m.name} value={m.status} onChange={e=>updateMessage(m.id,e.target.value as Message["status"])}><option>Novo</option><option>Em atendimento</option><option>Concluído</option><option>Arquivado</option></select></article>)}</div>{!live&&<p className="admin-footnote">Os registros exibidos são exemplos de interface, não contatos reais recebidos pelo portal.</p>}</section>}
 
         {section==="media"&&<section className="admin-panel-card"><div className="panel-card-head"><div><h3>Biblioteca de mídia</h3><p>Organização dos recursos visuais do portal.</p></div><button className="admin-primary" onClick={()=>notify("Upload ficará disponível após conectar o armazenamento.")}><Upload size={15}/> Adicionar arquivo</button></div><div className="media-empty"><div><Image size={27}/></div><h3>Central de ativos visuais</h3><p>Espaço preparado para logos, assinaturas, imagens editoriais, documentos e materiais das marcas.</p><span>Upload e armazenamento ainda não conectados</span></div><div className="media-folders"><div><Image/><b>Identidade FIXXAR</b><small>Logotipos e elementos gráficos</small></div><div><Users/><b>Universos e marcas</b><small>Materiais por unidade de negócio</small></div><div><BookOpen/><b>Institucional</b><small>Apresentações e documentos</small></div></div></section>}
 
@@ -104,13 +104,14 @@ function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser
 
 export default function Admin() {
   const [mode, setMode] = useState<"checking" | "demo" | "login" | "ready">("checking");
+  const [user, setUser] = useState<AdminUser|null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    getAdminSession().then(session => setMode(session.authenticated ? "ready" : "login"))
+    getAdminSession().then(session => {setUser(session.user||null);setMode(session.authenticated ? "ready" : "login");})
       .catch((reason: unknown) => {
         const failure = reason as { code?: string };
         setMode(failure.code === "api_not_configured" ? "demo" : "login");
@@ -122,7 +123,8 @@ export default function Admin() {
     setBusy(true);
     setError("");
     try {
-      await loginAdmin(email, password);
+      const signedIn = await loginAdmin(email, password);
+      setUser(signedIn);
       setMode("ready");
       setPassword("");
     } catch {
@@ -141,5 +143,7 @@ export default function Admin() {
     {error && <small role="alert">{error}</small>}
     <button className="admin-primary" disabled={busy}>{busy ? "Validando…" : "Entrar"}</button>
   </form></div>;
-  return <AdminDashboard />;
+  if(mode==="checking") return <div className="admin-gate"><div className="admin-gate-card"><b>FIXXAR GROUP</b><p>Verificando acesso…</p></div></div>;
+  const signOut=async()=>{try{await logoutAdmin();setUser(null);setMode("login");}catch{setError("Não foi possível encerrar a sessão.");}};
+  return <AdminDashboard live={mode==="ready"} user={user} onLogout={signOut} />;
 }
