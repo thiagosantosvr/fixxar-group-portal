@@ -5,6 +5,18 @@ const app = readFileSync("src/App.tsx", "utf8");
 const data = readFileSync("src/data.ts", "utf8");
 const admin = readFileSync("src/Admin.tsx", "utf8");
 
+const bootstrapChecks = [
+  ["estado de carregamento explícito do bootstrap", /bootstrapState,setBootstrapState/.test(admin)],
+  ["falha do bootstrap não injeta dados fictícios", /setBootstrapState\("error"\)/.test(admin) && admin.includes("Os dados não foram substituídos por exemplos.")],
+  ["interface apresenta erro e opção de nova tentativa", admin.includes("Não foi possível carregar os dados oficiais.") && admin.includes("Tentar novamente")],
+  ["nova tentativa usa a mesma rotina de carregamento", /onClick=\{\(\)=>void refreshAdminData\(\)\}/.test(admin)]
+];
+for (const [label, ok] of bootstrapChecks) {
+  console.log(`${ok ? "✓" : "✗"} ${label}`);
+  if (!ok) process.exitCode = 1;
+}
+
+
 const demoIsolationChecks = [
   ["universos demo não aparecem antes do bootstrap em sessão real", /useState<Universe\[]>\(\(\)=>live\?\[\]:readSaved\("fixxar-admin-universes",universes\)\)/.test(admin)],
   ["mensagens locais não contaminam a sessão real", /useState<Message\[]>\(\(\)=>live\?\[\]:readSaved\("fixxar-admin-messages",initialMessages\)\)/.test(admin)],
