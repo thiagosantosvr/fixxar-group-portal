@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_audit_admin FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE SET NULL,
   INDEX idx_audit_date (created_at),
-  INDEX idx_audit_entity (entity_type, entity_id)
+  INDEX idx_audit_entity (entity_type, entity_id),
+  INDEX idx_audit_login_throttle (action, ip_hash, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
