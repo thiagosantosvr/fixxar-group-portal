@@ -1,7 +1,8 @@
 export type AdminUser = { id: number; name: string; email: string; role: string };
 export type ApiSession = { authenticated: boolean; user?: AdminUser; csrfToken?: string };
+export type HomePageContent = { headline: string; subheadline: string; intro: string; groupHeadline: string; groupLead: string; groupBody: string; processHeadline: string; processIntro: string; processSteps: Array<{ title: string; text: string }> };
 export type ApiBootstrap = {
-  pages: Array<{ slug: string; content: { headline?: string; subheadline?: string; intro?: string } }>;
+  pages: Array<{ slug: string; content: Partial<HomePageContent> }>;
   universes: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: "active" | "in-development" | "archived"; sort_order: number }>;
   messages: Array<{ id: number; name: string; email: string; subject: string; message: string; status: "new" | "in_progress" | "done" | "archived"; created_at: string }>;
   settings: Array<{ setting_key: string; value: unknown }>;
@@ -39,7 +40,7 @@ export async function logoutAdmin() {
   csrfToken = "";
 }
 export const loadAdminData = () => request<ApiBootstrap>("/admin/bootstrap");
-export const saveHomePage = (data: { headline: string; subheadline: string; intro: string }) => request("/admin/pages/home", "PATCH", data);
+export const saveHomePage = (data: HomePageContent) => request("/admin/pages/home", "PATCH", data);
 export const saveBrand = (slug: string, data: Record<string, unknown>) => request(`/admin/universes/${encodeURIComponent(slug)}`, "PUT", data);
 export const updateContactStatus = (id: number, status: string) => request(`/admin/messages/${id}`, "PATCH", { status });
 export const saveSiteSettings = (data: Record<string, unknown>) => request("/admin/settings", "PATCH", data);
