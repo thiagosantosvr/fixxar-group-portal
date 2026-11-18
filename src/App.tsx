@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { pillars, universes } from "./data";
+import Admin from "./Admin";
 
 const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização"] as const;
 
@@ -14,6 +15,7 @@ function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolea
 }
 
 export default function App() {
+  if (window.location.pathname.replace(/\\/+$/, "") === "/painel") return <Admin />;
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todos");
   const [selected, setSelected] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
