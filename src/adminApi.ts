@@ -5,6 +5,7 @@ export type ApiBootstrap = {
   universes: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: "active" | "in-development" | "archived"; sort_order: number }>;
   messages: Array<{ id: number; name: string; email: string; subject: string; message: string; status: "new" | "in_progress" | "done" | "archived"; created_at: string }>;
   settings: Array<{ setting_key: string; value: unknown }>;
+  media: AdminMediaAsset[];
 };
 let csrfToken = "";
 async function request<T>(path: string, method = "GET", payload?: unknown): Promise<T> {
