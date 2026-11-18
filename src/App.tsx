@@ -200,7 +200,7 @@ function PublicPortal() {
 }
 
 export default function App() {
-  const path = window.location.pathname.replace(/^\\/+|\\/+$/g, "");
+  const path = window.location.pathname.split("/").filter(Boolean).join("/");
   if (path === "painel") return <Admin />;
   if (path) return <InstitutionalPage slug={path} />;
   return <PublicPortal />;
