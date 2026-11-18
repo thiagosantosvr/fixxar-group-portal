@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, BookOpen, Check,
+  Activity, ArrowUpRight, BarChart3, Bell, BookOpen, Check,
   ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Eye, FileText,
-  Globe2, Image, LayoutDashboard, LifeBuoy, LogOut, Menu, MessageSquare,
+  Globe2, Image, LayoutDashboard, LifeBuoy, Menu, MessageSquare,
   MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Users, X,
-  Clock3, Save, Trash2, Upload, Layers3
+  Clock3, Save, Upload, Layers3
 } from "lucide-react";
 import { pillars, universes, type Universe } from "./data";
 import "./admin.css";
