@@ -36,3 +36,5 @@
 .admin-gate-card input:focus{border-color:#f39a60;box-shadow:0 0 0 3px #ff751f14}
 .admin-gate-card small{color:#b54b35;font-size:11px}
 .admin-gate-card button{width:100%;margin-top:5px}
+
+.admin-live-alert{display:flex;align-items:center;gap:10px;padding:13px 16px;margin-bottom:25px;border:1px solid #cfe8d9;background:#f0faf4;color:#26724b;border-radius:7px;font-size:11px}
