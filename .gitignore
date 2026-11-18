@@ -3,3 +3,8 @@ dist
 .DS_Store
 *.local
 .env*
+
+# Private backend configuration and runtime data
+/server/config.php
+/server/storage/
+/server/logs/
