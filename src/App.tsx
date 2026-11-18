@@ -16,6 +16,19 @@ function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolea
 
 function PublicPortal() {
   const [contact, setContact] = useState({ name: "", email: "", subject: "", message: "", website: "" });
+  const [publicUniverses, setPublicUniverses] = useState(universes);
+  const [portalCopy, setPortalCopy] = useState({ headline: "Ideias que ganham forma.", subheadline: "Marcas que deixam marcas.", intro: "Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado." });
+  useEffect(() => {
+    let active = true;
+    fetch("/api/public/content", { headers: { Accept: "application/json" }, credentials: "same-origin" })
+      .then(response => { if (!response.ok) throw new Error("Public content unavailable"); return response.json(); })
+      .then((data: { page?: { content?: { headline?: string; subheadline?: string; intro?: string } } | null; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string }> }) => {
+        if (!active) return;
+        if (data.page?.content) setPortalCopy(current => ({ ...current, ...data.page?.content }));
+        if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "active" ? "active" : "in-development" })));
+      }).catch(() => { /* Static content remains available when the API is not configured. */ });
+    return () => { active = false; };
+  }, []);
   const [contactState, setContactState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [contactError, setContactError] = useState("");
   async function submitContact(event: FormEvent<HTMLFormElement>) {
@@ -43,8 +56,8 @@ function PublicPortal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const modalCloseRef = useRef<HTMLButtonElement>(null);
   const reduceMotion = useReducedMotion();
-  const visible = useMemo(() => filter === "Todos" ? universes : universes.filter((item) => item.category === filter), [filter]);
-  const active = universes.find((item) => item.id === selected);
+  const visible = useMemo(() => filter === "Todos" ? publicUniverses : publicUniverses.filter((item) => item.category === filter), [filter, publicUniverses]);
+  const active = publicUniverses.find((item) => item.id === selected);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -103,8 +116,8 @@ function PublicPortal() {
         <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
         <div className="hero-content">
           <motion.p className="eyebrow" initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7 }}>UM ECOSSISTEMA DE IDEIAS, MARCAS E POSSIBILIDADES</motion.p>
-          <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .12 }}>Ideias que ganham forma.<br /><em>Marcas que deixam marcas.</em></motion.h1>
-          <p className="hero-copy">Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.</p>
+          <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .12 }}>{portalCopy.headline}<br /><em>{portalCopy.subheadline}</em></motion.h1>
+          <p className="hero-copy">{portalCopy.intro}</p>
           <a className="text-link" href="#universos">Explore nossos universos <ArrowDownRight size={18} /></a>
         </div>
         <div className="hero-art" aria-hidden="true">
@@ -131,7 +144,7 @@ function PublicPortal() {
         <div className="filter-list" role="group" aria-label="Filtrar universos">{filters.map((item) => <button key={item} className={filter === item ? "filter active" : "filter"} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item}</button>)}</div>
         <p className="results-count" role="status" aria-live="polite">{visible.length} {visible.length === 1 ? "universo encontrado" : "universos encontrados"}</p>
         <div className="universe-grid" aria-live="polite">{visible.map((item, index) => <motion.article layout key={item.id} className="universe-card" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .4, delay: index * .05 }}>
-          <div className="card-top"><span>0{universes.findIndex((u) => u.id === item.id) + 1}</span><span>{item.category}</span></div><UniverseArtwork id={item.id} /><p className="card-eyebrow">{item.eyebrow}</p><h3>{item.name}</h3><p className="card-description">{item.description}</p><button className="card-action" aria-haspopup="dialog" aria-label={`Conheça ${item.name}`} onClick={() => setSelected(item.id)}>{item.status === "active" ? "Explore este universo" : "Conheça este universo"} <ArrowUpRight size={17} /></button>
+          <div className="card-top"><span>0{publicUniverses.findIndex((u) => u.id === item.id) + 1}</span><span>{item.category}</span></div><UniverseArtwork id={item.id} /><p className="card-eyebrow">{item.eyebrow}</p><h3>{item.name}</h3><p className="card-description">{item.description}</p><button className="card-action" aria-haspopup="dialog" aria-label={`Conheça ${item.name}`} onClick={() => setSelected(item.id)}>{item.status === "active" ? "Explore este universo" : "Conheça este universo"} <ArrowUpRight size={17} /></button>
         </motion.article>)}</div>
       </section>
 
