@@ -44,4 +44,4 @@ Não publicar nem alterar domínio, DNS, SSL ou FTP sem autorização expressa.
 
 ## Situação
 
-A implementação do portal e a preparação para hospedagem estática estão no repositório. A validação de build em ambiente com dependências, a conferência no navegador e a publicação no servidor DreamHost ainda precisam ser realizadas. Os SVGs da marca são estudos editáveis e dependem de aprovação tipográfica final.
+A implementação do portal e a preparação para hospedagem estática estão no repositório. A auditoria estrutural e o build de produção passaram no GitHub Actions, e o pacote de publicação foi gerado. A conferência visual em navegador e a publicação no servidor DreamHost ainda dependem da validação do ambiente e do acesso à hospedagem. Os SVGs da marca são estudos editáveis e dependem de aprovação tipográfica final.
