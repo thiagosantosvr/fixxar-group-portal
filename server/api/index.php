@@ -84,6 +84,9 @@ function jsonColumn(array $row, string $key): array {
 }
 
 $secure = (bool)($config['session_secure'] ?? true);
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.use_trans_sid', '0');
 session_name((string)($config['session_name'] ?? 'fixxar_admin'));
 session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>$secure,'httponly'=>true,'samesite'=>'Strict']);
 session_start();
