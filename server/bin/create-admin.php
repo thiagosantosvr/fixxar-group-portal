@@ -11,7 +11,11 @@ $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $d['host'], $d
 $pdo = new PDO($dsn, $d['user'], $d['password'], [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 $name = trim((string)readline('Administrator name: '));
 $email = strtolower(trim((string)readline('Administrator email: ')));
-$password = (string)readline('Temporary password (minimum 14 characters): ');
+fwrite(STDOUT, 'Temporary password (minimum 14 characters): ');
+$stty = PHP_OS_FAMILY !== 'Windows' ? shell_exec('stty -g 2>/dev/null') : null;
+if (is_string($stty) && $stty !== '') shell_exec('stty -echo');
+$password = rtrim((string)fgets(STDIN), "\\r\\n");
+if (is_string($stty) && $stty !== '') { shell_exec('stty ' . escapeshellarg(trim($stty))); fwrite(STDOUT, "\\n"); }
 if ($name === '' || !filter_var($email,FILTER_VALIDATE_EMAIL) || strlen($password)<14) {
     fwrite(STDERR, "Invalid name/email or password too short.\n"); exit(1);
 }
