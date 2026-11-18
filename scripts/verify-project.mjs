@@ -22,7 +22,7 @@ const requirements = [
   ["links ativos em HTTPS", activeEntries.length === 2 && activeEntries.every((entry) => /\burl:\s*"https:\/\//.test(entry))],
   ["backup inclui páginas institucionais", admin.includes("institutionalPages,")],
   ["backup inclui índice de mídia", admin.includes("mediaIndex:mediaAssets.map")],
-  ["backup documenta exclusão de binários e credenciais", admin.includes("não os arquivos binários das imagens") && admin.includes("Hashes de senha e tokens de sessão não são exportados")],
+  ["backup documenta exclusão de binários e credenciais", admin.includes("não os arquivos binários das imagens") && admin.includes("hashes de senha e tokens de sessão não são exportados")],
   ["backup identifica versão do formato", admin.includes("schemaVersion:2") && admin.includes('format:"fixxar-group-backup"')],
   ["universos em desenvolvimento sem URL publicada", developmentEntries.length === 3 && developmentEntries.every((entry) => !/\burl:/.test(entry))]
 ];
