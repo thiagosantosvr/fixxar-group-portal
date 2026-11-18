@@ -19,6 +19,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Check PHP syntax
+        run: find server -type f -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Run project verification
