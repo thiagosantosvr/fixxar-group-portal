@@ -12,7 +12,7 @@ Backend próprio para hospedagem PHP 8.1+ com MySQL/MariaDB. Foi separado em `se
 ## Instalação controlada
 
 1. Crie um banco MySQL exclusivo para FIXXAR GROUP no painel da hospedagem.
-2. Importe `server/database/schema.sql` nesse banco vazio.
+2. Importe `server/database/schema.sql` nesse banco vazio. Em instalações já existentes, confira os índices com `SHOW INDEX FROM admin_audit_log` e aplique uma única vez `server/database/migrations/002_login_throttle_index.sql` se o índice `idx_audit_login_throttle` ainda não existir.
 3. Copie `server/config.example.php` para `server/config.php`.
 4. Preencha host, nome, usuário e senha do banco. Configure a origem HTTPS canônica.
 5. Garanta que `server/config.php` não seja acessível pela web (o arquivo fica acima da pasta pública da API).
@@ -50,7 +50,7 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 ## Segurança aplicada
 
 - PDO com prepared statements e exceções.
-- Sessão HttpOnly, SameSite Strict e Secure configurável.
+- Sessão HttpOnly, SameSite Strict e Secure configurável, com strict mode, cookies exclusivos e transporte por cookie obrigatório.
 - Regeneração do identificador de sessão no login.
 - Token CSRF para operações de escrita.
 - Controle de papéis (owner, administrator, editor, support).
