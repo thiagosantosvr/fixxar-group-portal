@@ -15,6 +15,29 @@ function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolea
 }
 
 function PublicPortal() {
+  const [contact, setContact] = useState({ name: "", email: "", subject: "", message: "", website: "" });
+  const [contactState, setContactState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [contactError, setContactError] = useState("");
+  async function submitContact(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setContactState("sending");
+    setContactError("");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(contact)
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(response.status === 429 ? "Aguarde alguns instantes antes de enviar outra mensagem." : "Não foi possível enviar agora. Tente novamente mais tarde.");
+      setContact({ name: "", email: "", subject: "", message: "", website: "" });
+      setContactState("sent");
+    } catch (error) {
+      setContactError(error instanceof Error ? error.message : "Falha ao enviar mensagem.");
+      setContactState("error");
+    }
+  }
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todos");
   const [selected, setSelected] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -128,7 +151,15 @@ function PublicPortal() {
         <div className="pillar-grid">{pillars.map((pillar) => <article className="pillar" key={pillar.number}><span>{pillar.number}</span><h3>{pillar.title}</h3><p>{pillar.text}</p></article>)}</div>
       </section>
 
-      <section className="closing section-pad" id="conexoes"><p className="eyebrow">FIXXAR GROUP</p><h2>Vamos dar forma<br />à próxima <em>ideia?</em></h2><p>Encontre o universo certo para o que você deseja construir.</p><a className="closing-link" href="#universos">Encontre sua conexão <ArrowUpRight size={18} /></a></section>
+      <section className="closing section-pad" id="conexoes"><p className="eyebrow">FIXXAR GROUP</p><h2>Vamos dar forma<br />à próxima <em>ideia?</em></h2><p>Conte um pouco sobre o que você deseja construir. Nossa equipe poderá conhecer sua proposta.</p><form className="contact-form" onSubmit={submitContact}>
+      <div className="contact-fields"><label>Seu nome<input required maxLength={160} autoComplete="name" value={contact.name} onChange={e=>setContact({...contact,name:e.target.value})} /></label><label>Seu e-mail<input required type="email" maxLength={190} autoComplete="email" value={contact.email} onChange={e=>setContact({...contact,email:e.target.value})} /></label></div>
+      <label>Assunto<input required maxLength={180} value={contact.subject} onChange={e=>setContact({...contact,subject:e.target.value})} /></label>
+      <label>Mensagem<textarea required maxLength={5000} rows={5} value={contact.message} onChange={e=>setContact({...contact,message:e.target.value})} /></label>
+      <label className="contact-honeypot" aria-hidden="true" tabIndex={-1}>Website<input tabIndex={-1} autoComplete="off" value={contact.website} onChange={e=>setContact({...contact,website:e.target.value})} /></label>
+      <button className="contact-submit" type="submit" disabled={contactState==="sending"}>{contactState==="sending"?"Enviando…":"Enviar mensagem"} <ArrowUpRight size={17}/></button>
+      {contactState==="sent"&&<p className="contact-feedback" role="status">Mensagem recebida. Obrigado por entrar em contato.</p>}
+      {contactState==="error"&&<p className="contact-feedback is-error" role="alert">{contactError}</p>}
+    </form></section>
     </main>
 
     <footer className="site-footer"><a className="wordmark footer-mark" href="#inicio">FIXXAR<span>GROUP</span><i>X</i></a><p>Ideias que ganham forma. Marcas que deixam marcas.</p><span>© {new Date().getFullYear()} FIXXAR GROUP</span></footer>
