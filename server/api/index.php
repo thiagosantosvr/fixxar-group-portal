@@ -196,6 +196,18 @@ try {
         exit;
     }
 
+    if ($path === '/public/page' && $method === 'GET') {
+        $slug = (string)($_GET['slug'] ?? '');
+        if (!preg_match('/^[a-z0-9-]{2,100}$/', $slug) || $slug === 'home') respond(404, ['error'=>'page_not_found']);
+        $q = $pdo->prepare("SELECT slug,title,content_json FROM content_pages WHERE slug=? AND status='published' LIMIT 1");
+        $q->execute([$slug]);
+        $page = $q->fetch();
+        if (!$page) respond(404, ['error'=>'page_not_found']);
+        $page['content'] = jsonColumn($page, 'content_json');
+        unset($page['content_json']);
+        respond(200, ['page'=>$page]);
+    }
+
     if ($path === '/public/content' && $method === 'GET') {
         $pageQuery = $pdo->prepare("SELECT title,content_json,updated_at FROM content_pages WHERE slug='home' AND status='published' LIMIT 1");
         $pageQuery->execute();
