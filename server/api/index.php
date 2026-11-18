@@ -313,11 +313,15 @@ try {
     }
 
     if ($path === '/admin/bootstrap' && $method === 'GET') {
+        // Support staff handle the inbox only; do not disclose CMS, media or site settings.
+        $messages = $pdo->query('SELECT id,name,email,subject,message,status,created_at,updated_at FROM contact_messages ORDER BY created_at DESC LIMIT 100')->fetchAll();
+        if ($admin['role'] === 'support') {
+            respond(200, ['user'=>$admin,'pages'=>[],'universes'=>[],'messages'=>$messages,'settings'=>[],'media'=>[]]);
+        }
         $pages = $pdo->query('SELECT slug,title,content_json,status,updated_at FROM content_pages ORDER BY slug')->fetchAll();
         foreach ($pages as &$page) $page['content'] = jsonColumn($page, 'content_json');
         unset($page);
         $brands = $pdo->query('SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order,updated_at FROM brand_universes ORDER BY sort_order,id')->fetchAll();
-        $messages = $pdo->query('SELECT id,name,email,subject,message,status,created_at,updated_at FROM contact_messages ORDER BY created_at DESC LIMIT 100')->fetchAll();
         $settings = $pdo->query('SELECT setting_key,setting_value FROM site_settings ORDER BY setting_key')->fetchAll();
         $media = $pdo->query('SELECT id,original_name,storage_name,mime_type,file_size,alt_text,created_at FROM media_assets ORDER BY created_at DESC LIMIT 200')->fetchAll();
         foreach ($settings as &$setting) $setting['value'] = json_decode((string)$setting['setting_value'], true);
