@@ -297,10 +297,9 @@ try {
         respond(200, ['user'=>$admin,'pages'=>$pages,'universes'=>$brands,'messages'=>$messages,'settings'=>$settings,'media'=>$media]);
     }
 
-    if (preg_match('#^/admin/pages/([a-z0-9-]{2,100})$#', $path, $match) && $method === 'PUT') {
+    if (preg_match('#^/admin/pages/(?!home$)([a-z0-9-]{2,100})$#', $path, $match) && $method === 'PUT') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $slug = $match[1];
-        if ($slug === 'home') respond(409, ['error'=>'use_home_editor']);
         $input = body();
         $title = trim((string)($input['title'] ?? ''));
         $summary = trim((string)($input['summary'] ?? ''));
@@ -315,10 +314,9 @@ try {
         respond(200,['ok'=>true,'slug'=>$slug,'status'=>'draft']);
     }
 
-    if (preg_match('#^/admin/pages/([a-z0-9-]{2,100})/publish$#', $path, $match) && $method === 'POST') {
+    if (preg_match('#^/admin/pages/(?!home/)([a-z0-9-]{2,100})/publish$#', $path, $match) && $method === 'POST') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $slug = $match[1];
-        if ($slug === 'home') respond(409, ['error'=>'use_home_publisher']);
         $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug=?");
         $q->execute([(int)$admin['id'],$slug]);
         if (!$q->rowCount()) respond(404,['error'=>'page_not_found']);
