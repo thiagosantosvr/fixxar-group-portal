@@ -177,3 +177,18 @@ main section[id]{scroll-margin-top:88px}
 
 /* Public maintenance mode */
 .maintenance-screen{min-height:100svh;padding:clamp(32px,8vw,112px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;background:#111;color:#fff;font-family:inherit}.maintenance-mark{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800;letter-spacing:-1.5px;margin-bottom:clamp(80px,15vh,150px)}.maintenance-mark span{font-size:10px;letter-spacing:3px;align-self:flex-end;margin:0 0 3px 2px}.maintenance-mark i{font-style:normal;color:#ff751f;font-size:26px;margin-left:4px}.maintenance-kicker{font-size:10px;letter-spacing:3px;color:#ff751f;font-weight:700}.maintenance-screen h1{font-size:clamp(54px,10vw,128px);line-height:.95;letter-spacing:-.07em;max-width:900px;margin:24px 0}.maintenance-screen h1 em{font-family:Georgia,serif;font-weight:400;color:#ff751f}.maintenance-screen p{max-width:510px;color:#c5c5c5;font-size:clamp(15px,1.5vw,19px);line-height:1.7}.maintenance-rule{width:64px;height:2px;background:#ff751f;margin:42px 0 18px}.maintenance-screen small{font-size:9px;letter-spacing:2px;color:#888}
+
+/* Public institutional CMS pages */
+.institutional-page{min-height:100vh;background:var(--paper);color:#111;display:flex;flex-direction:column}
+.institutional-header{height:82px;background:#111;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8%;border-bottom:1px solid #ffffff20}
+.institutional-back{display:flex;align-items:center;gap:10px;color:#ddd;font-size:12px}
+.institutional-content{width:min(900px,84%);margin:0 auto;padding:100px 0 120px;flex:1}
+.institutional-content h1,.institutional-message h1{font:600 clamp(46px,7vw,82px)/1.06 Manrope,sans-serif;letter-spacing:-.065em;margin:25px 0 30px;max-width:850px}
+.institutional-summary{font:500 clamp(19px,2.5vw,25px)/1.65 Manrope,sans-serif;color:#555;max-width:760px;padding-bottom:35px;border-bottom:1px solid #d8d4cc}
+.institutional-body{max-width:740px;padding-top:20px}
+.institutional-body p{font-size:16px;line-height:2;color:#555;white-space:pre-wrap;margin:0 0 22px}
+.institutional-message{width:min(900px,84%);margin:auto;flex:1;padding:130px 0}
+.institutional-message p{color:#777;line-height:1.8}
+.institutional-message a{display:inline-flex;align-items:center;gap:10px;margin-top:24px;border-bottom:1px solid var(--orange);padding-bottom:10px;font-size:13px}
+.institutional-footer{background:#111;color:#888;text-align:center;padding:30px 6%;font-size:9px;letter-spacing:.16em}
+@media(max-width:640px){.institutional-header{height:70px;padding:0 6%}.institutional-content{padding:75px 0 90px}.institutional-content h1,.institutional-message h1{font-size:48px}.institutional-body p{font-size:14px}.institutional-message{padding:100px 0}}
