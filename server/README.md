@@ -27,6 +27,7 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | Método | Rota | Acesso | Função |
 |---|---|---|---|
 | GET | /api/health | Público | Verifica API e conexão MySQL |
+| POST | /api/contact | Público | Valida e registra uma mensagem de contato |
 | POST | /api/auth/login | Público | Autenticação por e-mail e senha |
 | GET | /api/auth/session | Sessão | Consulta usuário e token CSRF |
 | POST | /api/auth/logout | Admin + CSRF | Encerra sessão |
