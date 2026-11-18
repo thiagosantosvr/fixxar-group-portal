@@ -5,6 +5,14 @@ import { pillars, universes } from "./data";
 
 const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização"] as const;
 
+function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolean }) {
+  return <div className={`universe-artwork artwork-${id}${compact ? " is-compact" : ""}`} aria-hidden="true">
+    <span className="art-shape shape-one" /><span className="art-shape shape-two" /><span className="art-shape shape-three" />
+    <span className="art-monogram">{id === "agencia" ? "F/" : id === "fotografia" ? "◉" : id === "editora" ? "E" : id === "tio-moises" ? "✳" : "□"}</span>
+    <span className="art-caption">{id === "agencia" ? "IDEAS / STRATEGY" : id === "fotografia" ? "LIGHT / FRAME" : id === "editora" ? "PAPER / STORIES" : id === "tio-moises" ? "PLAY / LEARN" : "OBJECT / FORM"}</span>
+  </div>;
+}
+
 export default function App() {
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todos");
   const [selected, setSelected] = useState<string | null>(null);
@@ -69,7 +77,7 @@ export default function App() {
         <div className="section-heading"><div><p className="eyebrow">DIFERENTES ESPECIALIDADES. UMA VISÃO CONECTADA.</p><h2>Conheça nossas<br /><em>marcas.</em></h2></div><p>Cada universo tem sua identidade, sua linguagem e seu jeito de transformar. Todos fazem parte de algo maior.</p></div>
         <div className="filter-list" role="group" aria-label="Filtrar universos">{filters.map((item) => <button key={item} className={filter === item ? "filter active" : "filter"} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item}</button>)}</div>
         <div className="universe-grid" aria-live="polite">{visible.map((item, index) => <motion.article layout key={item.id} className="universe-card" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .4, delay: index * .05 }}>
-          <div className="card-top"><span>0{universes.findIndex((u) => u.id === item.id) + 1}</span><span>{item.category}</span></div><div className="card-mark">{item.name.split(" ").map((word) => word[0]).slice(0, 2).join("")}<b>×</b></div><p className="card-eyebrow">{item.eyebrow}</p><h3>{item.name}</h3><p className="card-description">{item.description}</p><button className="card-action" onClick={() => setSelected(item.id)}>Conheça este universo <ArrowUpRight size={17} /></button>
+          <div className="card-top"><span>0{universes.findIndex((u) => u.id === item.id) + 1}</span><span>{item.category}</span></div><UniverseArtwork id={item.id} /><p className="card-eyebrow">{item.eyebrow}</p><h3>{item.name}</h3><p className="card-description">{item.description}</p><button className="card-action" onClick={() => setSelected(item.id)}>Conheça este universo <ArrowUpRight size={17} /></button>
         </motion.article>)}</div>
       </section>
 
@@ -94,6 +102,6 @@ export default function App() {
 
     <footer className="site-footer"><a className="wordmark footer-mark" href="#inicio">FIXXAR<span>GROUP</span><i>X</i></a><p>Ideias que ganham forma. Marcas que deixam marcas.</p><span>© {new Date().getFullYear()} FIXXAR GROUP</span></footer>
 
-    {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-description"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar janela"><X /></button><p className="eyebrow">{active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p id="detail-description">{active.detail}</p>{active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar universo <ArrowUpRight size={17} /></a> : <span className="status-note">Este universo está em desenvolvimento.</span>}</section></div>}
+    {active && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-describedby="detail-description"><button className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar janela"><X /></button><UniverseArtwork id={active.id} compact /><p className="eyebrow">{active.eyebrow}</p><h2 id="detail-title">{active.name}</h2><p id="detail-description">{active.detail}</p>{active.url ? <a className="text-link" href={active.url} target="_blank" rel="noopener noreferrer">Visitar universo <ArrowUpRight size={17} /></a> : <span className="status-note">Este universo está em desenvolvimento.</span>}</section></div>}
   </div>;
 }
