@@ -31,6 +31,11 @@ const sectionTitles:Record<Section,string>={overview:"Visão geral",pages:"Pági
 function readSaved<T,>(key:string,fallback:T):T {
   try { const raw=localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; }
 }
+function readHomeDraft(){
+  const fallback={headline:"Ideias que ganham forma.",subheadline:"Marcas que deixam marcas.",intro:"Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.",groupHeadline:"Um grupo. Muitas formas de transformar.",groupLead:"A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.",groupBody:"Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.",processHeadline:"O movimento por trás da ideia.",processIntro:"Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.",processSteps:[{title:"Imaginar",text:"Enxergar possibilidades e descobrir o que ainda pode existir."},{title:"Construir",text:"Dar estrutura, linguagem e intenção para cada projeto."},{title:"Conectar",text:"Aproximar ideias, pessoas e experiências que fazem sentido."},{title:"Transformar",text:"Levar o que foi imaginado para o mundo real."}]};
+  const saved=readSaved<Partial<typeof fallback>>("fixxar-admin-home-copy",{});
+  return {...fallback,...saved,processSteps:Array.isArray(saved.processSteps)&&saved.processSteps.length===4?saved.processSteps:fallback.processSteps};
+}
 function Metric({label,value,change,icon:Icon,caption}:{label:string;value:string;change:string;icon:typeof Users;caption:string}) {
   return <article className="admin-metric"><div className="metric-top"><span>{label}</span><i><Icon size={17}/></i></div><strong>{value}</strong><div className="metric-bottom"><span className="metric-change"><ArrowUpRight size={13}/>{change}</span><small>{caption}</small></div></article>;
 }
@@ -45,7 +50,7 @@ function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser
   const [mediaBusy,setMediaBusy]=useState(false);
   const [toast,setToast]=useState("");
   const [editing,setEditing]=useState<Universe|null>(null);
-  const [pageDraft,setPageDraft]=useState(()=>readSaved("fixxar-admin-home-copy",{headline:"Ideias que ganham forma.",subheadline:"Marcas que deixam marcas.",intro:"Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.",groupHeadline:"Um grupo. Muitas formas de transformar.",groupLead:"A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.",groupBody:"Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.",processHeadline:"O movimento por trás da ideia.",processIntro:"Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.",processSteps:[{title:"Imaginar",text:"Enxergar possibilidades e descobrir o que ainda pode existir."},{title:"Construir",text:"Dar estrutura, linguagem e intenção para cada projeto."},{title:"Conectar",text:"Aproximar ideias, pessoas e experiências que fazem sentido."},{title:"Transformar",text:"Levar o que foi imaginado para o mundo real."}]}));
+  const [pageDraft,setPageDraft]=useState(readHomeDraft);
   const [settings,setSettings]=useState(()=>readSaved("fixxar-admin-settings",{siteName:"FIXXAR GROUP",email:"",maintenance:false,seoTitle:"FIXXAR GROUP — Ideias que ganham forma",description:"Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas."}));
   const [lastSaved,setLastSaved]=useState("Ainda não publicado");
   const filteredBrands=useMemo(()=>brandData.filter(x=>(x.name+" "+x.category).toLowerCase().includes(query.toLowerCase())),[brandData,query]);
