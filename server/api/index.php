@@ -148,6 +148,29 @@ try {
         respond(200, ['ok'=>true]);
     }
 
+    if ($path === '/contact' && $method === 'POST') {
+        $length = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($length > 12000) respond(413, ['error'=>'request_too_large']);
+        if (!empty($_SESSION['contact_sent_at']) && time() - (int)$_SESSION['contact_sent_at'] < 30) {
+            respond(429, ['error'=>'please_wait']);
+        }
+        $input = body();
+        // Honeypot: bots that fill the hidden field receive a neutral success response.
+        if (trim((string)($input['website'] ?? '')) !== '') respond(200, ['ok'=>true]);
+        $name = trim((string)($input['name'] ?? ''));
+        $email = filter_var(trim((string)($input['email'] ?? '')), FILTER_VALIDATE_EMAIL);
+        $subject = trim((string)($input['subject'] ?? ''));
+        $message = trim((string)($input['message'] ?? ''));
+        if ($name === '' || mb_strlen($name) > 160 || !$email || mb_strlen((string)$email) > 190 ||
+            $subject === '' || mb_strlen($subject) > 180 || $message === '' || mb_strlen($message) > 5000) {
+            respond(422, ['error'=>'invalid_contact_data']);
+        }
+        $q = $pdo->prepare('INSERT INTO contact_messages (name,email,subject,message) VALUES (?,?,?,?)');
+        $q->execute([$name, $email, $subject, $message]);
+        $_SESSION['contact_sent_at'] = time();
+        respond(201, ['ok'=>true]);
+    }
+
     $admin = requireAdmin($pdo);
 
     if ($path === '/admin/bootstrap' && $method === 'GET') {
