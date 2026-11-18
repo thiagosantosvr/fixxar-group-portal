@@ -171,6 +171,16 @@ try {
         respond(201, ['ok'=>true]);
     }
 
+    if ($path === '/public/content' && $method === 'GET') {
+        $pageQuery = $pdo->prepare("SELECT title,content_json,updated_at FROM content_pages WHERE slug='home' AND status='published' LIMIT 1");
+        $pageQuery->execute();
+        $page = $pageQuery->fetch();
+        if ($page) $page['content'] = jsonColumn($page, 'content_json');
+        unset($page['content_json']);
+        $universes = $pdo->query("SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order FROM brand_universes WHERE status IN ('active','in-development') ORDER BY sort_order,id")->fetchAll();
+        respond(200, ['page'=>$page ?: null,'universes'=>$universes]);
+    }
+
     $admin = requireAdmin($pdo);
 
     if ($path === '/admin/bootstrap' && $method === 'GET') {
@@ -198,6 +208,15 @@ try {
         $q->execute([json_encode($content, JSON_UNESCAPED_UNICODE), (int)$admin['id']]);
         audit($pdo, $admin, 'page.save_draft', 'page', 'home');
         respond(200, ['ok'=>true,'status'=>'draft']);
+    }
+
+    if ($path === '/admin/pages/home/publish' && $method === 'POST') {
+        requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
+        $q = $pdo->prepare("UPDATE content_pages SET status='published',updated_by=? WHERE slug='home'");
+        $q->execute([(int)$admin['id']]);
+        if (!$q->rowCount()) respond(404, ['error'=>'page_not_found']);
+        audit($pdo, $admin, 'page.publish', 'page', 'home');
+        respond(200, ['ok'=>true,'status'=>'published']);
     }
 
     if (preg_match('#^/admin/universes/([a-z0-9-]{2,100})$#', $path, $match) && $method === 'PUT') {
