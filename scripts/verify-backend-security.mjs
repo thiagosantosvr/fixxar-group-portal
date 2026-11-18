@@ -34,6 +34,18 @@ const checks = [
   ["indicador de páginas calculado pelo CMS", adminUi.includes("String(institutionalPages.length+1)")]
 ];
 
+const cmsAtomicityChecks = [
+  ["salvar página institucional e auditoria na mesma transação", /INSERT INTO content_pages \(slug,title,content_json,status,updated_by\)[\s\S]*?\$pdo->beginTransaction\(\);[\s\S]*?audit\(\$pdo,\$admin,'page\.save_draft','page',\$slug\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
+  ["publicar página institucional com lock e auditoria atômica", /SELECT id FROM content_pages WHERE slug=\? LIMIT 1 FOR UPDATE[\s\S]*?audit\(\$pdo,\$admin,'page\.publish','page',\$slug\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
+  ["salvar página inicial e auditoria na mesma transação", /INSERT INTO content_pages \(slug,title,content_json,status,updated_by\) VALUES \('home'[\s\S]*?audit\(\$pdo, \$admin, 'page\.save_draft', 'page', 'home'\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
+  ["publicar página inicial com lock e auditoria atômica", /SELECT id FROM content_pages WHERE slug='home' LIMIT 1 FOR UPDATE[\s\S]*?audit\(\$pdo, \$admin, 'page\.publish', 'page', 'home'\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
+  ["transações do CMS desfazem alterações em falha", (api.match(/if \(\$pdo->inTransaction\(\)\) \$pdo->rollBack\(\);/g)||[]).length >= 6
+];
+for (const [label, ok] of cmsAtomicityChecks) {
+  console.log(`${ok ? "✓" : "✗"} ${label}`);
+  if (!ok) process.exitCode = 1;
+}
+
 let failed = false;
 for (const [label, ok] of checks) {
   console.log(`${ok ? "✓" : "✗"} ${label}`);
