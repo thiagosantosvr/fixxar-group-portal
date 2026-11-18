@@ -143,7 +143,6 @@ export default function Admin() {
     {error && <small role="alert">{error}</small>}
     <button className="admin-primary" disabled={busy}>{busy ? "Validando…" : "Entrar"}</button>
   </form></div>;
-  if(mode==="checking") return <div className="admin-gate"><div className="admin-gate-card"><b>FIXXAR GROUP</b><p>Verificando acesso…</p></div></div>;
   const signOut=async()=>{try{await logoutAdmin();setUser(null);setMode("login");}catch{setError("Não foi possível encerrar a sessão.");}};
   return <AdminDashboard live={mode==="ready"} user={user} onLogout={signOut} />;
 }
