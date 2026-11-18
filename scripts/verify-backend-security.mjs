@@ -25,6 +25,10 @@ const checks = [
   ["publicação repetida de página é idempotente", api.includes("SELECT id FROM content_pages WHERE slug=? LIMIT 1")],
   ["publicação repetida da home é idempotente", api.includes("SELECT id FROM content_pages WHERE slug='home' LIMIT 1")],
   ["atualização repetida de mensagem é idempotente", api.includes("SELECT id FROM contact_messages WHERE id=? LIMIT 1")],
+  ["imagem validada por MIME e assinatura", api.includes("getimagesize($upload['tmp_name'])") && api.includes("($imageInfo['mime'] ?? '') !== $mime")],
+  ["limite contra imagens com dimensões excessivas", api.includes("> 40000000")],
+  ["upload transacional com limpeza em falha", api.includes("$pdo->beginTransaction();") && api.includes("if (is_file($destination)) unlink($destination)")],
+  ["exclusão de mídia com restauração em rollback", api.includes("$tombstone=$directory.'/'.bin2hex(random_bytes(16)).'.delete'") && api.includes("rename($tombstone,$file)")],
   ["caixa de demonstração sem contatos fictícios", adminUi.includes("const initialMessages: Message[] = [];")],
   ["indicador de páginas calculado pelo CMS", adminUi.includes("String(institutionalPages.length+1)")]
 ];
