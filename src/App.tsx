@@ -5,13 +5,13 @@ import { pillars, universes } from "./data";
 import Admin from "./Admin";
 import InstitutionalPage from "./InstitutionalPage";
 
-const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização"] as const;
+const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização", "Tecnologia"] as const;
 
 function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolean }) {
   return <div className={`universe-artwork artwork-${id}${compact ? " is-compact" : ""}`} aria-hidden="true">
     <span className="art-shape shape-one" /><span className="art-shape shape-two" /><span className="art-shape shape-three" />
-    <span className="art-monogram">{id === "agencia" ? "F/" : id === "fotografia" ? "◉" : id === "editora" ? "E" : id === "tio-moises" ? "✳" : "□"}</span>
-    <span className="art-caption">{id === "agencia" ? "IDEAS / STRATEGY" : id === "fotografia" ? "LIGHT / FRAME" : id === "editora" ? "PAPER / STORIES" : id === "tio-moises" ? "PLAY / LEARN" : "OBJECT / FORM"}</span>
+    <span className="art-monogram">{id === "agencia" ? "F/" : id === "fotografia" ? "◉" : id === "editora" ? "E" : id === "tio-moises" ? "✳" : id === "yad-sistemas-integrados" ? "Y" : "□"}</span>
+    <span className="art-caption">{id === "agencia" ? "IDEAS / STRATEGY" : id === "fotografia" ? "LIGHT / FRAME" : id === "editora" ? "PAPER / STORIES" : id === "tio-moises" ? "PLAY / LEARN" : id === "yad-sistemas-integrados" ? "SYSTEMS / INTEGRATION" : "OBJECT / FORM"}</span>
   </div>;
 }
 
@@ -77,6 +77,16 @@ function PublicPortal() {
   const [menuOpen, setMenuOpen] = useState(false);
   const modalCloseRef = useRef<HTMLButtonElement>(null);
   const reduceMotion = useReducedMotion();
+  useEffect(() => {
+    if (reduceMotion) return;
+    const targets = document.querySelectorAll<HTMLElement>(".section-kicker, .manifesto-grid, .section-heading, .filter-list, .universe-card, .process-intro, .process-track article, .pillar, .contact-form");
+    targets.forEach(element => element.classList.add("scroll-reveal"));
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); } });
+    }, { threshold: 0.14, rootMargin: "0px 0px -45px 0px" });
+    targets.forEach(element => observer.observe(element));
+    return () => observer.disconnect();
+  }, [reduceMotion]);
   const visible = useMemo(() => filter === "Todos" ? publicUniverses : publicUniverses.filter((item) => item.category === filter), [filter, publicUniverses]);
   const active = publicUniverses.find((item) => item.id === selected);
 
