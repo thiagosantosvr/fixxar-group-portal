@@ -49,27 +49,26 @@ try {
     exit('Não foi possível conectar ao banco. Confira a configuração do servidor.');
 }
 
-// Keep installer sessions inside the protected application storage instead of
-// relying on the hosting account's global PHP session directory.
-$sessionDir = $storage . '/sessions';
-if (!is_dir($sessionDir) && !mkdir($sessionDir, 0700, true) && !is_dir($sessionDir)) {
-    http_response_code(500);
-    exit('Não foi possível preparar a sessão segura do instalador. Verifique a permissão de escrita em server/storage.');
-}
-if (!is_writable($sessionDir)) {
-    http_response_code(500);
-    exit('A pasta server/storage/sessions não permite gravação pelo PHP. Ajuste a permissão de escrita na hospedagem.');
-}
+// Use the PHP session storage configured by the hosting provider.
+// DreamHost may not allow PHP to create custom session directories under the site.
 if (session_status() !== PHP_SESSION_ACTIVE) {
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.use_trans_sid', '0');
-    session_save_path($sessionDir);
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     session_name('fixxar_setup');
-    session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
-    if (!session_start()) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    if (!@session_start()) {
+        error_log('[FIXXAR setup] PHP session_start failed; save_path=' . (string)ini_get('session.save_path'));
         http_response_code(500);
-        exit('Não foi possível iniciar a sessão segura do instalador.');
+        exit('O servidor não conseguiu iniciar uma sessão PHP. Verifique a configuração de sessões PHP da hospedagem.');
     }
 }
 if (!isset($_SESSION['setup_csrf'])) $_SESSION['setup_csrf'] = bin2hex(random_bytes(32));
