@@ -218,6 +218,27 @@ try {
         if ($page) $page['content'] = jsonColumn($page, 'content_json');
         unset($page['content_json']);
         $universes = $pdo->query("SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order FROM brand_universes WHERE status IN ('active','in-development') ORDER BY sort_order,id")->fetchAll();
+        // Keep the YAD visible on the institutional portal even when an older
+        // production database has not yet received the incremental YAD migration.
+        $yadSlug = 'yad-sistemas-integrados';
+        $hasYad = false;
+        foreach ($universes as $universe) {
+            if (($universe['slug'] ?? '') === $yadSlug) { $hasYad = true; break; }
+        }
+        if (!$hasYad) {
+            $universes[] = [
+                'slug' => $yadSlug,
+                'name' => 'YAD Sistemas Integrados',
+                'eyebrow' => 'Tecnologia & integração',
+                'description' => 'Soluções integradas para conectar processos, sistemas e operações.',
+                'detail' => 'Unidade de tecnologia dedicada a sistemas integrados e soluções digitais. Informações comerciais e endereço oficial serão definidos na etapa de lançamento.',
+                'category' => 'Tecnologia',
+                'website_url' => null,
+                'status' => 'in-development',
+                'sort_order' => 6,
+            ];
+        }
+
         $publishedPages = $pdo->query("SELECT slug,title FROM content_pages WHERE status='published' AND slug<>'home' ORDER BY title")->fetchAll();
         $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance')");
         $settingQuery->execute();
