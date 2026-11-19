@@ -457,7 +457,12 @@ try {
         $profile = [];
         foreach (['logo_url','cover_image_url','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address'] as $field) {
             $value = trim((string)($input[$field] ?? ''));
-            if (mb_strlen($value) > 500) respond(422, ['error'=>'invalid_universe_field','field'=>$field]);
+            $maxLength = $field === 'contact_email' ? 190 : ($field === 'contact_phone' ? 80 : 500);
+            if (mb_strlen($value) > $maxLength) respond(422, ['error'=>'invalid_universe_field','field'=>$field]);
+            if (in_array($field,['logo_url','cover_image_url'],true) && $value !== '' &&
+                !str_starts_with($value,'/api/media/') && (!filter_var($value,FILTER_VALIDATE_URL) || !str_starts_with($value,'https://'))) {
+                respond(422,['error'=>'invalid_image_url','field'=>$field]);
+            }
             if (in_array($field,['whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url'],true) && $value !== '' && (!filter_var($value,FILTER_VALIDATE_URL) || !str_starts_with($value,'https://'))) respond(422,['error'=>'invalid_https_url','field'=>$field]);
             if ($field === 'contact_email' && $value !== '' && !filter_var($value,FILTER_VALIDATE_EMAIL)) respond(422,['error'=>'invalid_email','field'=>$field]);
             $profile[$field] = $value !== '' ? $value : null;
