@@ -15,6 +15,9 @@
 - [x] Verificação estrutural dos cinco universos e links confirmados adicionada.
 - [x] Executar `npm run verify` no GitHub Actions (Node.js 22).
 - [x] Executar `npm run build` no GitHub Actions (artefato de produção gerado).
+- [x] Integração frontend/API, autenticação, CMS, papéis e contingência documentados e verificados estaticamente.
+- [ ] Executar testes funcionais com PHP/MySQL no ambiente DreamHost real.
+- [ ] Aprovar a tipografia final dos SVGs da marca.
 - [ ] Conferir o resultado visual em navegador desktop e celular.
 - [ ] Confirmar headers e regras Apache no plano/servidor DreamHost real.
 
