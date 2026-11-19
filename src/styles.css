@@ -192,3 +192,24 @@ main section[id]{scroll-margin-top:88px}
 .institutional-message a{display:inline-flex;align-items:center;gap:10px;margin-top:24px;border-bottom:1px solid var(--orange);padding-bottom:10px;font-size:13px}
 .institutional-footer{background:#111;color:#888;text-align:center;padding:30px 6%;font-size:9px;letter-spacing:.16em}
 @media(max-width:640px){.institutional-header{height:70px;padding:0 6%}.institutional-content{padding:75px 0 90px}.institutional-content h1,.institutional-message h1{font-size:48px}.institutional-body p{font-size:14px}.institutional-message{padding:100px 0}}
+
+
+/* Accessibility: typography increased by 2pt across the public portal */
+:root { font-size: calc(100% + 2pt); }
+body { font-size: calc(16px + 2pt); }
+.main-nav, .hero-copy, .text-link, .section-kicker, .manifesto-text p,
+.manifesto-text .lead, .section-heading > p, .filter, .card-top,
+.card-description, .card-action, .pillar > span, .pillar p,
+.process-intro > p, .process-track article > span, .process-track p,
+.closing > p:not(.eyebrow), .closing-link, .site-footer,
+.detail-modal > p:not(.eyebrow), .detail-focus p, .detail-lead,
+.detail-focus-label, .detail-modal .status-note, .results-count,
+.contact-form label, .contact-form input, .contact-form textarea,
+.contact-submit, .contact-feedback, .institutional-back,
+.institutional-summary, .institutional-body p, .institutional-message p,
+.institutional-message a, .institutional-footer {
+  font-size: calc(1em + 2pt);
+}
+@media (max-width: 640px) {
+  .hero-copy, .pillar p, .institutional-body p { font-size: calc(1em + 2pt); }
+}
