@@ -4,7 +4,7 @@ export type Universe = {
   eyebrow: string;
   description: string;
   detail: string;
-  category: "Estratégia" | "Imagem" | "Editorial" | "Infantil" | "Personalização";
+  category: "Estratégia" | "Imagem" | "Editorial" | "Infantil" | "Personalização" | "Tecnologia";
   url?: string;
   status: "active" | "in-development";
 };
@@ -14,7 +14,8 @@ export const universes: Universe[] = [
   { id: "fotografia", name: "Fixxar Fotografia", eyebrow: "Imagem & experiência", description: "Fotografia profissional, histórias e experiências que permanecem.", detail: "Fotografia profissional, álbuns e formação.", category: "Imagem", url: "https://thiago.fixxarestudios.com.br", status: "active" },
   { id: "editora", name: "Entre o Céu e Papel", eyebrow: "Projetos editoriais", description: "Ideias transformadas em livros, conhecimento e memória.", detail: "Editora independente, projetos editoriais e consultoria acadêmica.", category: "Editorial", status: "in-development" },
   { id: "tio-moises", name: "Tio Moisés", eyebrow: "Universo infantil", description: "Histórias, conteúdos educativos e experiências para crianças.", detail: "Conteúdo educativo, histórias, personagens e experiências.", category: "Infantil", status: "in-development" },
-  { id: "brindes", name: "Fixxar Brindes", eyebrow: "Personalização", description: "Ideias que ganham forma em produtos e presentes personalizados.", detail: "Brindes e soluções de personalização.", category: "Personalização", status: "in-development" }
+  { id: "brindes", name: "Fixxar Brindes", eyebrow: "Personalização", description: "Ideias que ganham forma em produtos e presentes personalizados.", detail: "Brindes e soluções de personalização.", category: "Personalização", status: "in-development" },
+  { id: "yad-sistemas-integrados", name: "YAD Sistemas Integrados", eyebrow: "Tecnologia & integração", description: "Soluções integradas para conectar processos, sistemas e operações.", detail: "Unidade de tecnologia dedicada a sistemas integrados e soluções digitais. Informações comerciais e endereço oficial serão definidos na etapa de lançamento.", category: "Tecnologia", status: "in-development" }
 ];
 
 export const pillars = [
