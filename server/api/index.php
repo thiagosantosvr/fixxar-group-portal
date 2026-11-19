@@ -243,7 +243,7 @@ try {
         }
 
         $publishedPages = $pdo->query("SELECT slug,title FROM content_pages WHERE status='published' AND slug<>'home' ORDER BY title")->fetchAll();
-        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance','site_name','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text')");
+        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance','site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text')");
         $settingQuery->execute();
         $seo = ['title'=>'FIXXAR GROUP — Ideias que ganham forma','description'=>'Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas.'];
         $maintenance = false;
@@ -455,7 +455,7 @@ try {
         if ($name === '' || mb_strlen($name)>180 || mb_strlen($category)>80 || !in_array($status,['active','in-development','archived'],true)) respond(422, ['error'=>'invalid_universe']);
         if ($url !== '' && (!filter_var($url,FILTER_VALIDATE_URL) || !str_starts_with($url,'https://'))) respond(422, ['error'=>'invalid_https_url']);
         $profile = [];
-        foreach (['logo_url','cover_image_url','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address'] as $field) {
+        foreach (['logo_url','cover_image_url','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address'] as $field) {
             $value = trim((string)($input[$field] ?? ''));
             $maxLength = $field === 'contact_email' ? 190 : ($field === 'contact_phone' ? 80 : 500);
             if (mb_strlen($value) > $maxLength) respond(422, ['error'=>'invalid_universe_field','field'=>$field]);
@@ -564,7 +564,7 @@ try {
     if ($path === '/admin/settings' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator']);
         $input=body();
-        $allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','maintenance'];
+        $allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','maintenance'];
         foreach ($input as $key=>$value) {
             if (!in_array($key,$allowedSettings,true)) respond(422,['error'=>'invalid_setting_key']);
             if ($key === 'maintenance' && !is_bool($value)) respond(422,['error'=>'invalid_setting_value','field'=>$key]);
