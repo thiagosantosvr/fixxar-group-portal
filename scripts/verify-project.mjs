@@ -35,18 +35,20 @@ const developmentEntries = universeEntries.filter((entry) => /\bstatus:\s*"in-de
 
 const admin = readFileSync("src/Admin.tsx", "utf8");\n\n
 const textExportChecks = [
-  ["slug institucional remove diacríticos após normalização Unicode", /title\.normalize\("NFD"\)\.replace\(/.test(admin) && !/title\.normalize\("NFD"\)\.replace\(\/\[\\\\u0300/.test(admin)],
-  ["exportação CSV usa BOM Unicode real", /const csv="\\uFEFF"/.test(admin)],
-  ["exportação CSV usa quebras de linha reais", /\.join\("\\r\\n"\)/.test(admin)]
+  ["slug institucional remove diacríticos após normalização Unicode", admin.includes('title.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")')],
+  ["exportação CSV usa BOM Unicode real", admin.includes('const csv="\\uFEFF"')],
+  ["exportação CSV usa quebras de linha reais", admin.includes('.join("\\r\\n")')]
 ];
+const uploadAltSource = readFileSync("src/adminApi.ts", "utf8");
 const uploadAltCheck = [
-  ["nome alternativo de imagem remove extensão corretamente", /file\.name\.replace\(\/\\\.[^\.]+\$\//.test(readFileSync("src/adminApi.ts", "utf8"))]
+  ["nome alternativo de imagem remove extensão corretamente", uploadAltSource.includes('file.name.replace(/\\.[^.]+$/')]
 ];
 for (const [label, ok] of [...textExportChecks, ...uploadAltCheck]) {
   console.log(`${ok ? "✓" : "✗"} ${label}`);
   if (!ok) process.exitCode = 1;
 }
-\nconst requirements = [
+
+const requirements = [
   ["nome do projeto", pkg.name === "fixxar-group-portal"],
   ["React", Boolean(pkg.dependencies?.react)],
   ["Vite", Boolean(pkg.devDependencies?.vite)],
