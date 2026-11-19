@@ -38,6 +38,7 @@ O Vite gera o site em `dist/`. O arquivo `public/.htaccess` é copiado para `dis
 
 1. Confirme que o plano oferece PHP 8.1+, PDO MySQL, mbstring, MySQL/MariaDB e SSH/CLI.
 2. Crie um banco exclusivo para FIXXAR GROUP e importe `server/database/schema.sql`.
+3. Execute também `server/database/upgrade-yad.sql` no mesmo banco. Esse script cadastra a YAD Sistemas Integrados sem duplicar registros nem alterar as demais empresas; execute-o tanto em instalações novas quanto em bancos já existentes.
 3. Copie `server/config.example.php` para `server/config.php` **somente no servidor**. Preencha credenciais reais, origem HTTPS canônica e uma `security_key` aleatória de pelo menos 32 bytes. Nunca envie esse arquivo ao Git.
 4. Envie a pasta `server/` para o Document Root, preservando `server/api/`, `server/bin/`, `server/database/` e `server/.htaccess`. Confirme que o bloqueio HTTP de arquivos privados está ativo.
 5. Configure o encaminhamento de `/api/*` para `server/api/index.php`. A regra da API deve ter prioridade sobre o fallback SPA de `public/.htaccess`.
