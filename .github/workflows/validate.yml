@@ -35,11 +35,32 @@ jobs:
         run: npm run build
       - name: Check DreamHost Apache config is included
         run: test -f dist/.htaccess
-      - name: Upload production artifact
+      - name: Assemble DreamHost deployment package
+        run: |
+          mkdir -p release/fixxar-group-portal
+          cp -a dist/. release/fixxar-group-portal/
+          cp -a server release/fixxar-group-portal/server
+          cp DEPLOY-DREAMHOST.md release/fixxar-group-portal/LEIA-ANTES-DE-INSTALAR.md
+          cp server/README.md release/fixxar-group-portal/LEIA-SOBRE-PAINEL-E-API.md
+          cat > release/fixxar-group-portal/LEIA-ME.txt <<'EOF'
+          FIXXAR GROUP — PACOTE DE INSTALAÇÃO
+
+          1. Leia LEIA-ANTES-DE-INSTALAR.md antes de enviar qualquer arquivo.
+          2. O conteúdo desta pasta corresponde à raiz pública do site.
+          3. A pasta server/ contém a API PHP e os arquivos de instalação do banco.
+          4. O arquivo server/config.php NÃO vem neste pacote. Ele deve ser criado
+             no servidor a partir de server/config.example.php, com credenciais
+             próprias da hospedagem.
+          5. Faça backup do conteúdo atual antes de qualquer substituição.
+          6. Não publique sem validar domínio, HTTPS, PHP, banco e permissões.
+          7. O painel real e o formulário dependem da configuração da API e MySQL.
+          EOF
+          cd release
+          zip -qr fixxar-group-portal-dreamhost.zip fixxar-group-portal
+      - name: Upload complete deployment package
         uses: actions/upload-artifact@v4
         with:
-          name: fixxar-group-portal-dist
-          path: dist/
+          name: fixxar-group-portal-dreamhost
+          path: release/fixxar-group-portal-dreamhost.zip
           if-no-files-found: error
           retention-days: 14
-          include-hidden-files: true
