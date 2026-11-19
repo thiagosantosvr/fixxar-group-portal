@@ -49,10 +49,28 @@ try {
     exit('Não foi possível conectar ao banco. Confira a configuração do servidor.');
 }
 
+// Keep installer sessions inside the protected application storage instead of
+// relying on the hosting account's global PHP session directory.
+$sessionDir = $storage . '/sessions';
+if (!is_dir($sessionDir) && !mkdir($sessionDir, 0700, true) && !is_dir($sessionDir)) {
+    http_response_code(500);
+    exit('Não foi possível preparar a sessão segura do instalador. Verifique a permissão de escrita em server/storage.');
+}
+if (!is_writable($sessionDir)) {
+    http_response_code(500);
+    exit('A pasta server/storage/sessions não permite gravação pelo PHP. Ajuste a permissão de escrita na hospedagem.');
+}
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_trans_sid', '0');
+    session_save_path($sessionDir);
     session_name('fixxar_setup');
-    session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>true,'httponly'=>true,'samesite'=>'Strict']);
-    session_start();
+    session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
+    if (!session_start()) {
+        http_response_code(500);
+        exit('Não foi possível iniciar a sessão segura do instalador.');
+    }
 }
 if (!isset($_SESSION['setup_csrf'])) $_SESSION['setup_csrf'] = bin2hex(random_bytes(32));
 if (!isset($_SESSION['setup_attempts'])) $_SESSION['setup_attempts'] = 0;
