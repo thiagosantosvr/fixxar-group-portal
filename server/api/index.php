@@ -240,16 +240,18 @@ try {
         }
 
         $publishedPages = $pdo->query("SELECT slug,title FROM content_pages WHERE status='published' AND slug<>'home' ORDER BY title")->fetchAll();
-        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance')");
+        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance','site_name','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text')");
         $settingQuery->execute();
         $seo = ['title'=>'FIXXAR GROUP — Ideias que ganham forma','description'=>'Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas.'];
         $maintenance = false;
+        $publicSettings = [];
         foreach ($settingQuery->fetchAll() as $setting) {
             $value = json_decode((string)$setting['setting_value'], true);
             if ($setting['setting_key'] === 'maintenance') { $maintenance = $value === true || $value === 1 || $value === '1'; continue; }
-            if (is_string($value) && trim($value) !== '') $seo[$setting['setting_key'] === 'seo_title' ? 'title' : 'description'] = trim($value);
+            if (in_array($setting['setting_key'], ['seo_title','seo_description'], true)) { if (is_string($value) && trim($value) !== '') $seo[$setting['setting_key'] === 'seo_title' ? 'title' : 'description'] = trim($value); continue; }
+            if (is_string($value) && trim($value) !== '') $publicSettings[$setting['setting_key']] = trim($value);
         }
-        respond(200, ['page'=>$page ?: null,'pages'=>$publishedPages,'universes'=>$universes,'seo'=>$seo,'maintenance'=>$maintenance]);
+        respond(200, ['page'=>$page ?: null,'pages'=>$publishedPages,'universes'=>$universes,'seo'=>$seo,'maintenance'=>$maintenance,'settings'=>$publicSettings]);
     }
 
     $admin = requireAdmin($pdo);
@@ -542,16 +544,16 @@ try {
     if ($path === '/admin/settings' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator']);
         $input=body();
-        $allowedSettings = ['site_name','contact_email','seo_title','seo_description','maintenance'];
+        $allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','maintenance'];
         foreach ($input as $key=>$value) {
             if (!in_array($key,$allowedSettings,true)) respond(422,['error'=>'invalid_setting_key']);
             if ($key === 'maintenance' && !is_bool($value)) respond(422,['error'=>'invalid_setting_value','field'=>$key]);
-            if ($key !== 'maintenance' && (!is_string($value) || mb_strlen($value) > ($key === 'seo_description' ? 500 : 180))) {
+            if ($key !== 'maintenance' && (!is_string($value) || mb_strlen($value) > (in_array($key,['seo_description','contact_address','footer_text'],true) ? 500 : 500))) {
                 respond(422,['error'=>'invalid_setting_value','field'=>$key]);
             }
-            if ($key === 'contact_email' && $value !== '' && !filter_var($value,FILTER_VALIDATE_EMAIL)) {
-                respond(422,['error'=>'invalid_setting_value','field'=>$key]);
-            }
+            if ($key === 'contact_email' && $value !== '' && !filter_var($value,FILTER_VALIDATE_EMAIL)) respond(422,['error'=>'invalid_setting_value','field'=>$key]);
+            if (in_array($key,['whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url'],true) && $value !== '' && (!filter_var($value,FILTER_VALIDATE_URL) || !str_starts_with($value,'https://'))) respond(422,['error'=>'invalid_https_url','field'=>$key]);
+            if ($key === 'site_name' && trim($value) === '') respond(422,['error'=>'invalid_setting_value','field'=>$key]);
             $q=$pdo->prepare('INSERT INTO site_settings (setting_key,setting_value,updated_by) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value),updated_by=VALUES(updated_by)');
             $q->execute([$key,json_encode($value,JSON_UNESCAPED_UNICODE),(int)$admin['id']]);
         }
