@@ -9,6 +9,7 @@ export type Universe = {
   status: "active" | "in-development" | "archived";
   sortOrder?: number;
   logoUrl?: string;
+  logoBackground?: "transparent" | "black" | "white" | "brand";
   coverImageUrl?: string;
   contactEmail?: string;
   contactPhone?: string;
@@ -26,7 +27,8 @@ export const universes: Universe[] = [
   { id: "editora", name: "Entre o Céu e Papel", eyebrow: "Projetos editoriais", description: "Ideias transformadas em livros, conhecimento e memória.", detail: "Editora independente, projetos editoriais e consultoria acadêmica.", category: "Editorial", status: "in-development" },
   { id: "tio-moises", name: "Tio Moisés", eyebrow: "Universo infantil", description: "Histórias, conteúdos educativos e experiências para crianças.", detail: "Conteúdo educativo, histórias, personagens e experiências.", category: "Infantil", status: "in-development" },
   { id: "brindes", name: "Fixxar Brindes", eyebrow: "Personalização", description: "Ideias que ganham forma em produtos e presentes personalizados.", detail: "Brindes e soluções de personalização.", category: "Personalização", status: "in-development" },
-  { id: "yad-sistemas-integrados", name: "YAD Sistemas Integrados", eyebrow: "Tecnologia & integração", description: "Soluções integradas para conectar processos, sistemas e operações.", detail: "Unidade de tecnologia dedicada a sistemas integrados e soluções digitais. Informações comerciais e endereço oficial serão definidos na etapa de lançamento.", category: "Tecnologia", status: "in-development" }
+  { id: "yad-sistemas-integrados", name: "YAD Sistemas Integrados", eyebrow: "Tecnologia & integração", description: "Soluções integradas para conectar processos, sistemas e operações.", detail: "Unidade de tecnologia dedicada a sistemas integrados e soluções digitais. Informações comerciais e endereço oficial serão definidos na etapa de lançamento.", category: "Tecnologia", status: "in-development" },
+  { id: "st-seg", name: "ST SEG", eyebrow: "Segurança & treinamentos", description: "Soluções em segurança do trabalho, capacitação e treinamentos normativos.", detail: "Consultoria, segurança do trabalho e turmas personalizadas para treinamentos das normas.", category: "Estratégia", status: "active", sortOrder: 7 }
 ];
 
 export const pillars = [

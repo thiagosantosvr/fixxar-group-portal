@@ -1,0 +1,3 @@
+-- Fundo independente para cada logotipo do ecossistema FIXXAR
+ALTER TABLE brand_universes ADD COLUMN logo_background ENUM('transparent','black','white','brand') NOT NULL DEFAULT 'transparent' AFTER logo_url;
+INSERT INTO brand_universes (slug,name,eyebrow,description,detail,category,website_url,status,sort_order,logo_background) VALUES ('st-seg','ST SEG','Segurança & treinamentos','Soluções em segurança do trabalho, capacitação e treinamentos normativos.','Consultoria, segurança do trabalho e turmas personalizadas para treinamentos das normas.','Estratégia',NULL,'active',7,'transparent') ON DUPLICATE KEY UPDATE name=VALUES(name),eyebrow=VALUES(eyebrow),description=VALUES(description),detail=VALUES(detail),category=VALUES(category),status='active',sort_order=7;
