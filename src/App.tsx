@@ -21,7 +21,7 @@ function PublicPortal() {
   const [publishedPages, setPublishedPages] = useState<Array<{slug:string;title:string}>>([]);
   const [seoMeta,setSeoMeta]=useState({title:"FIXXAR GROUP — Ideias que ganham forma",description:"Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas."});
   const [maintenanceActive,setMaintenanceActive]=useState(false);
-  const [portalCopy, setPortalCopy] = useState({ headline: "Ideias que ganham forma.", subheadline: "Marcas que deixam marcas.", intro: "Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.", groupHeadline: "Um grupo. Muitas formas de transformar.", groupLead: "A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.", groupBody: "Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.", processHeadline: "O movimento por trás da ideia.", processIntro: "Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.", processSteps: [{title:"Imaginar",text:"Enxergar possibilidades e descobrir o que ainda pode existir."},{title:"Construir",text:"Dar estrutura, linguagem e intenção para cada projeto."},{title:"Conectar",text:"Aproximar ideias, pessoas e experiências que fazem sentido."},{title:"Transformar",text:"Levar o que foi imaginado para o mundo real."}] });
+  const [portalCopy, setPortalCopy] = useState({ headline: "Ideias que ganham forma.", subheadline: "Marcas que deixam marcas.", intro: "Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.", groupHeadline: "Um grupo. Muitas formas de transformar.", groupLead: "A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.", groupBody: "Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.", processHeadline: "O movimento por trás da ideia.", processIntro: "Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.", universeEyebrow: "DIFERENTES ESPECIALIDADES. UMA VISÃO CONECTADA.", universeHeadline: "Conheça nossas", universeAccent: "marcas.", universeIntro: "Cada universo tem sua identidade, sua linguagem e seu jeito de transformar. Todos fazem parte de algo maior.", essenceHeadline: "Quatro pilares.", essenceAccent: "Uma essência.", essenceIntro: "O que fazemos muda de forma. O que nos move permanece.", closingHeadline: "Vamos dar forma", closingAccent: "à próxima ideia?", closingIntro: "Conte um pouco sobre o que você deseja construir. Nossa equipe poderá conhecer sua proposta.", processSteps: [{title:"Imaginar",text:"Enxergar possibilidades e descobrir o que ainda pode existir."},{title:"Construir",text:"Dar estrutura, linguagem e intenção para cada projeto."},{title:"Conectar",text:"Aproximar ideias, pessoas e experiências que fazem sentido."},{title:"Transformar",text:"Levar o que foi imaginado para o mundo real."}] });
   useEffect(() => {
     let active = true;
     fetch("/api/public/content", { headers: { Accept: "application/json" }, credentials: "same-origin" })
@@ -79,7 +79,7 @@ function PublicPortal() {
   const reduceMotion = useReducedMotion();
   useEffect(() => {
     if (reduceMotion) return;
-    const targets = document.querySelectorAll<HTMLElement>(".section-kicker, .manifesto-grid, .section-heading, .filter-list, .universe-card, .process-intro, .process-track article, .pillar, .contact-form");
+    const targets = document.querySelectorAll<HTMLElement>(".section-kicker, .manifesto-grid, .section-heading, .filter-list, .universe-card, .process-intro, .process-track article, .pillar, .contact-form, .hero-copy, .hero .text-link, .hero-index, .closing h2, .closing > p:not(.eyebrow)");
     targets.forEach(element => element.classList.add("scroll-reveal"));
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); } });
@@ -173,7 +173,7 @@ function PublicPortal() {
 
       <section className="universes section-pad" id="universos">
         <div className="section-kicker light-kicker"><span>02</span><span>NOSSOS UNIVERSOS</span></div>
-        <div className="section-heading"><div><p className="eyebrow">DIFERENTES ESPECIALIDADES. UMA VISÃO CONECTADA.</p><h2>Conheça nossas<br /><em>marcas.</em></h2></div><p>Cada universo tem sua identidade, sua linguagem e seu jeito de transformar. Todos fazem parte de algo maior.</p></div>
+        <div className="section-heading"><div><p className="eyebrow">{portalCopy.universeEyebrow}</p><h2>{portalCopy.universeHeadline}<br /><em>{portalCopy.universeAccent}</em></h2></div><p>{portalCopy.universeIntro}</p></div>
         <div className="filter-list" role="group" aria-label="Filtrar universos">{filters.map((item) => <button key={item} className={filter === item ? "filter active" : "filter"} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item}</button>)}</div>
         <p className="results-count" role="status" aria-live="polite">{visible.length} {visible.length === 1 ? "universo encontrado" : "universos encontrados"}</p>
         <div className="universe-grid" aria-live="polite">{visible.map((item, index) => <motion.article layout key={item.id} className="universe-card" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .4, delay: index * .05 }}>
@@ -188,11 +188,11 @@ function PublicPortal() {
       </section>
 
       <section className="essence section-pad" id="essencia">
-        <div className="section-kicker"><span>04</span><span>NO QUE ACREDITAMOS</span></div><div className="section-heading essence-heading"><h2>Quatro pilares.<br /><em>Uma essência.</em></h2><p>O que fazemos muda de forma. O que nos move permanece.</p></div>
+        <div className="section-kicker"><span>04</span><span>NO QUE ACREDITAMOS</span></div><div className="section-heading essence-heading"><h2>{portalCopy.essenceHeadline}<br /><em>{portalCopy.essenceAccent}</em></h2><p>{portalCopy.essenceIntro}</p></div>
         <div className="pillar-grid">{pillars.map((pillar) => <article className="pillar" key={pillar.number}><span>{pillar.number}</span><h3>{pillar.title}</h3><p>{pillar.text}</p></article>)}</div>
       </section>
 
-      <section className="closing section-pad" id="conexoes"><p className="eyebrow">FIXXAR GROUP</p><h2>Vamos dar forma<br />à próxima <em>ideia?</em></h2><p>Conte um pouco sobre o que você deseja construir. Nossa equipe poderá conhecer sua proposta.</p><form className="contact-form" onSubmit={submitContact}>
+      <section className="closing section-pad" id="conexoes"><p className="eyebrow">FIXXAR GROUP</p><h2>{portalCopy.closingHeadline}<br /><em>{portalCopy.closingAccent}</em></h2><p>{portalCopy.closingIntro}</p><form className="contact-form" onSubmit={submitContact}>
       <div className="contact-fields"><label>Seu nome<input required maxLength={160} autoComplete="name" value={contact.name} onChange={e=>setContact({...contact,name:e.target.value})} /></label><label>Seu e-mail<input required type="email" maxLength={190} autoComplete="email" value={contact.email} onChange={e=>setContact({...contact,email:e.target.value})} /></label></div>
       <label>Assunto<input required maxLength={180} value={contact.subject} onChange={e=>setContact({...contact,subject:e.target.value})} /></label>
       <label>Mensagem<textarea required maxLength={5000} rows={5} value={contact.message} onChange={e=>setContact({...contact,message:e.target.value})} /></label>
