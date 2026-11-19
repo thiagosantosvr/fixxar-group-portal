@@ -3,7 +3,7 @@ export type ApiSession = { authenticated: boolean; user?: AdminUser; csrfToken?:
 export type HomePageContent = { headline: string; subheadline: string; intro: string; groupHeadline: string; groupLead: string; groupBody: string; processHeadline: string; processIntro: string; universeEyebrow:string; universeHeadline:string; universeAccent:string; universeIntro:string; essenceHeadline:string; essenceAccent:string; essenceIntro:string; closingHeadline:string; closingAccent:string; closingIntro:string; processSteps: Array<{ title: string; text: string }> };
 export type ApiBootstrap = {
   pages: Array<{ slug: string; title:string; status:"draft"|"published"; updated_at?:string; content: Partial<HomePageContent> & {summary?:string; content?:string} }>;
-  universes: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: "active" | "in-development" | "archived"; sort_order: number }>;
+  universes: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: "active" | "in-development" | "archived"; sort_order: number; logo_url?:string|null; cover_image_url?:string|null; contact_email?:string|null; contact_phone?:string|null; whatsapp_url?:string|null; instagram_url?:string|null; facebook_url?:string|null; youtube_url?:string|null; linkedin_url?:string|null; contact_address?:string|null }>;
   messages: Array<{ id: number; name: string; email: string; subject: string; message: string; status: "new" | "in_progress" | "done" | "archived"; created_at: string }>;
   settings: Array<{ setting_key: string; value: unknown }>;
   media: AdminMediaAsset[];
