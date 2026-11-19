@@ -51,7 +51,7 @@ export type AdminMediaAsset = { id: number; original_name: string; storage_name:
 export async function uploadAdminMedia(file: File) {
   const form = new FormData();
   form.append("file", file);
-  form.append("alt_text", file.name.replace(/\\.[^.]+$/, "").replace(/[-_]+/g, " "));
+  form.append("alt_text", file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
   const headers: Record<string,string> = { Accept: "application/json" };
   if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
   const response = await fetch("/api/admin/media", { method: "POST", headers, credentials: "same-origin", body: form });
