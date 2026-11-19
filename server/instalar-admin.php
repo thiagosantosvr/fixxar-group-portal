@@ -21,6 +21,10 @@ if (!is_dir($storage) && !mkdir($storage, 0750, true) && !is_dir($storage)) {
     http_response_code(500);
     exit('Não foi possível preparar o armazenamento.');
 }
+$storageRules = $storage . '/.htaccess';
+if (!is_file($storageRules)) {
+    @file_put_contents($storageRules, "Require all denied\\n");
+}
 $lockFile = $storage . '/owner-setup.lock';
 $pdo = null;
 $errorMessage = '';
