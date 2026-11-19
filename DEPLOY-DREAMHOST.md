@@ -1,17 +1,20 @@
 # Publicação do FIXXAR GROUP na DreamHost
 
-Este portal foi preparado como aplicação estática. A hospedagem não precisa de Node.js, banco de dados, PHP, Supabase, serviços externos pagos ou processo permanente no servidor.
+O portal possui dois modos de operação:
 
-## Requisitos gratuitos
+- **Portal estático:** a interface pública pode ser servida como arquivos estáticos, sem Node.js ou banco no servidor. Nesse modo, o conteúdo de contingência é exibido, mas o formulário de contato não grava mensagens e o painel `/painel` fica em demonstração.
+- **Portal integrado:** para ativar formulário de contato, CMS, autenticação e painel administrativo reais, são necessários PHP 8.1+, MySQL/MariaDB e a API em `server/`.
 
-- Conta de hospedagem DreamHost já existente, com o domínio configurado nela.
-- Node.js 20 ou superior apenas na máquina usada para gerar a versão de produção.
-- npm incluído com o Node.js.
-- Cliente SFTP (por exemplo, Cyberduck ou FileZilla) ou gerenciador de arquivos da hospedagem.
+Não é necessário contratar serviços pagos adicionais. Use a hospedagem DreamHost já existente, se ela atender aos requisitos técnicos.
 
-Não contrate plano, plugin, serviço, banco de dados ou integração adicional para publicar este portal.
+## Requisitos
 
-## Gerar a versão de produção
+- Conta de hospedagem DreamHost já existente e domínio associado.
+- Node.js 20+ e npm somente na máquina que gera o build.
+- Para o modo integrado: PHP 8.1+ com PDO MySQL e mbstring, MySQL/MariaDB, HTTPS e acesso ao gerenciador de banco; SSH/CLI para criar o primeiro administrador.
+- Cliente SFTP ou gerenciador de arquivos da hospedagem.
+
+## Gerar e validar a versão
 
 Na raiz do repositório:
 
@@ -21,28 +24,44 @@ npm run verify
 npm run build
 ```
 
-O Vite gera o site pronto para hospedagem na pasta `dist/`. O arquivo `public/.htaccess` é copiado para `dist/.htaccess`.
+O Vite gera o site em `dist/`. O arquivo `public/.htaccess` é copiado para `dist/.htaccess`. O build e as verificações foram aprovados no GitHub Actions; isso não substitui os testes no servidor real.
 
-## Enviar para a DreamHost
+## Instalação no Document Root
 
-1. No painel DreamHost, confirme que `www.fixxarestudios.com.br` está associado ao domínio de hospedagem já contratado.
-2. Localize o diretório Document Root informado para esse domínio. Em instalações comuns ele pode ser `~/www.fixxarestudios.com.br/`, mas use o caminho exibido no painel, não presuma o nome.
-3. Faça backup dos arquivos que já estiverem nesse diretório antes de substituir qualquer conteúdo.
-4. Envie **o conteúdo de `dist/`**, e não a pasta `dist` inteira, para o Document Root.
-5. Confirme que `index.html`, `.htaccess` e a pasta `assets/` estão diretamente no Document Root.\n6. Para ativar a API administrativa, envie também a pasta `server/` para o Document Root, preservando `server/api/` e `server/.htaccess`. Mantenha `server/config.php` preenchido apenas no servidor; o `.htaccess` da pasta `server/` bloqueia acesso HTTP direto a esse arquivo.\n7. Importe `server/database/schema.sql` em um banco dedicado e configure `server/config.php` com as credenciais reais. Crie o primeiro usuário via SSH com `php server/bin/create-admin.php`.\n8. Confirme `GET /api/health` antes de conectar o painel. Não ative a API sem configurar banco, HTTPS, usuário administrador e backups.
-6. Abra o domínio em janela anônima e teste desktop, celular, navegação, filtros, modais e links externos.
-7. Verifique `https://www.fixxarestudios.com.br/robots.txt` e `https://www.fixxarestudios.com.br/sitemap.xml`.
+1. No painel DreamHost, confirme que `www.fixxarestudios.com.br` está associado à hospedagem existente.
+2. Localize o Document Root informado no painel. Não presuma o caminho.
+3. Faça backup integral do conteúdo atual antes de substituir qualquer arquivo.
+4. Envie o **conteúdo** de `dist/` para o Document Root, preservando `index.html`, `.htaccess` e `assets/`.
+5. Para operar apenas o portal estático, teste a navegação e os recursos visuais. O formulário e o painel não estarão integrados sem a API.
 
-## HTTPS, domínio e DNS
+## Ativar o modo integrado (PHP/MySQL)
 
-O portal usa URLs canônicas HTTPS. Antes de divulgar, confirme no painel DreamHost que o certificado SSL gratuito Let's Encrypt está ativo para o domínio raiz e para o subdomínio www, e que ambos apontam para o Document Root correto. Configure o redirecionamento para uma única versão canônica (www) somente depois de validar o certificado e a resolução DNS.
+1. Confirme que o plano oferece PHP 8.1+, PDO MySQL, mbstring, MySQL/MariaDB e SSH/CLI.
+2. Crie um banco exclusivo para FIXXAR GROUP e importe `server/database/schema.sql`.
+3. Copie `server/config.example.php` para `server/config.php` **somente no servidor**. Preencha credenciais reais, origem HTTPS canônica e uma `security_key` aleatória de pelo menos 32 bytes. Nunca envie esse arquivo ao Git.
+4. Envie a pasta `server/` para o Document Root, preservando `server/api/`, `server/bin/`, `server/database/` e `server/.htaccess`. Confirme que o bloqueio HTTP de arquivos privados está ativo.
+5. Configure o encaminhamento de `/api/*` para `server/api/index.php`. A regra da API deve ter prioridade sobre o fallback SPA de `public/.htaccess`.
+6. Execute via SSH: `php server/bin/create-admin.php` e crie a primeira conta proprietária com senha forte.
+7. Garanta escrita PHP em `server/storage/media` e configure `upload_max_filesize` e `post_max_size` para pelo menos 12 MB.
+8. Confirme `GET /api/health`, autenticação, encerramento de sessão, CSRF, formulário de contato, upload, CMS e permissões de cada papel.
+9. Só então considere o painel e o formulário operacionais.
 
-Este repositório **não altera** DNS, SSL, domínio, FTP, arquivos existentes nem configurações da conta. Essas ações ficam pendentes até autorização e acesso do responsável pela hospedagem. Não apague arquivos desconhecidos do Document Root.
+Consulte também `server/README.md` para rotas, requisitos e controles de segurança.
 
-## Atualizações
+## Homologação de domínio e HTTPS
 
-Para cada atualização, gere novamente a pasta `dist/`, faça backup da versão publicada e envie os novos arquivos. Os nomes dos assets do Vite são versionados, então mantenha a pasta `assets/` completa correspondente ao mesmo build.
+- Confirme no painel o Document Root correto.
+- Confirme SSL válido para o domínio raiz e para `www`.
+- Escolha uma única versão canônica (www) e configure redirecionamento somente após validar DNS e certificados.
+- Teste desktop e celular, navegação, filtros, modais, links externos, `robots.txt` e `sitemap.xml`.
+- No modo integrado, teste também `/api/health` e todos os fluxos descritos acima.
 
-## Limitações intencionais
+Este repositório não altera DNS, SSL, domínio, FTP, arquivos existentes nem configurações da conta. Publicação e mudanças na hospedagem dependem de autorização expressa. Não apague arquivos desconhecidos.
 
-O portal público ainda não possui formulário de contato conectado. A API administrativa já tem base de autenticação, controle de papéis, CSRF, auditoria e operações de conteúdo, mas o frontend do painel continua em modo de demonstração até ser integrado e validado no servidor. Não invente e-mails, telefones, endereços ou links para preencher lacunas.
+## Atualizações e backup
+
+Para atualizar, gere novamente `dist/`, faça backup da versão publicada e envie os novos arquivos mantendo a pasta `assets/` correspondente ao mesmo build. No modo integrado, faça também backup do banco e de `server/storage/media`. O backup JSON do painel é apenas um backup estruturado de conteúdo; não substitui esses backups completos.
+
+## Limitações e dados oficiais
+
+Não invente e-mails, telefones, endereços ou links para preencher lacunas. O portal não deve ser considerado operacional em produção até concluir a homologação do ambiente real e a publicação autorizada.
