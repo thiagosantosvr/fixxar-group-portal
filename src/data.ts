@@ -8,6 +8,16 @@ export type Universe = {
   url?: string;
   status: "active" | "in-development" | "archived";
   sortOrder?: number;
+  logoUrl?: string;
+  coverImageUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  whatsappUrl?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
+  linkedinUrl?: string;
+  address?: string;
 };
 
 export const universes: Universe[] = [
