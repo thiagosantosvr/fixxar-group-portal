@@ -39,7 +39,7 @@ function Metric({label,value,change,icon:Icon,caption}:{label:string;value:strin
 }
 
 function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser|null; onLogout:()=>void }) {
-  const [section,setSection]=useState<Section>("overview");
+  const [section,setSection]=useState<Section>(live&&user?.role==="support"?"messages":"overview");
   const [sidebarOpen,setSidebarOpen]=useState(false);
   const [query,setQuery]=useState("");
   const [brandData,setBrandData]=useState<Universe[]>(()=>live?[]:readSaved("fixxar-admin-universes",universes));
@@ -70,6 +70,7 @@ function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser
   const unread=messages.filter(m=>m.status==="Novo").length;
 
   useEffect(()=>{document.title="Painel de controle | FIXXAR GROUP";},[]);
+  useEffect(()=>{if(live&&user?.role==="support"&&section!=="messages")setSection("messages");},[live,user?.role,section]);
   useEffect(()=>{if(!live||user?.role!=="owner")return;loadAdminUsers().then(setAdminUsers).catch(()=>notify("Não foi possível carregar os usuários."));},[live,user?.role]);
   useEffect(()=>{if(section!=="audit"||!live||user?.role!=="owner")return;loadAdminAuditLog().then(setAuditEntries).catch(()=>notify("Não foi possível carregar o histórico de auditoria."));},[section,live,user?.role]);
   async function refreshAdminData(){if(!live)return;setBootstrapState("loading");try{const data=await loadAdminData();const home=data.pages.find(page=>page.slug==="home")?.content;if(home)setPageDraft(current=>({...current,...home}));setInstitutionalPages(data.pages.filter(page=>page.slug!=="home").map(page=>({...page,content:page.content as ManagedContentPage["content"]})));setBrandData(data.universes.map(item=>({id:item.slug,name:item.name,eyebrow:item.eyebrow,description:item.description,detail:item.detail,category:item.category as Universe["category"],status:item.status==="archived"?"in-development":item.status,url:item.website_url||undefined})));setMessages(data.messages.map(item=>({id:item.id,name:item.name,email:item.email,subject:item.subject,date:new Date(item.created_at).toLocaleString("pt-BR"),status:({new:"Novo",in_progress:"Em atendimento",done:"Concluído",archived:"Arquivado"} as const)[item.status],excerpt:item.message})));const saved=Object.fromEntries(data.settings.map(item=>[item.setting_key,item.value]));setSettings(current=>({...current,siteName:String(saved.site_name??current.siteName),email:String(saved.contact_email??current.email),seoTitle:String(saved.seo_title??current.seoTitle),description:String(saved.seo_description??current.description),maintenance:Boolean(saved.maintenance??current.maintenance)}));setMediaAssets(data.media||[]);setBootstrapState("ready");}catch{setBootstrapState("error");notify("Falha ao carregar dados do servidor. Os dados não foram substituídos por exemplos.");}}
@@ -95,7 +96,7 @@ function AdminDashboard({ live, user, onLogout }: { live:boolean; user:AdminUser
       <a className="admin-brand" href="/" aria-label="FIXXAR GROUP"><span>F/</span><b>FIXXAR<small>GROUP</small></b></a>
       <div className="admin-workspace"><div className="workspace-avatar">F</div><div><strong>FIXXAR GROUP</strong><small>Portal institucional</small></div><ChevronDown size={15}/></div>
       <nav className="admin-nav" aria-label="Menu do painel">
-        {menuItems.filter(item=>!["users","audit"].includes(item.id)||live&&user?.role==="owner").map((item,index)=><div key={item.id}>{(index===0||menuItems[index-1].group!==item.group)&&<p className="admin-nav-label">{item.group}</p>}<button className={section===item.id?"admin-nav-item active":"admin-nav-item"} onClick={()=>{setSection(item.id);setSidebarOpen(false);}}><item.icon size={17}/><span>{item.label}</span>{item.id==="messages"&&unread>0&&<b>{unread}</b>}</button></div>)}
+        {menuItems.filter(item=>(!live||user?.role!=="support"||item.id==="messages")&&(!["users","audit"].includes(item.id)||live&&user?.role==="owner")).map((item,index)=><div key={item.id}>{(index===0||menuItems[index-1].group!==item.group)&&<p className="admin-nav-label">{item.group}</p>}<button className={section===item.id?"admin-nav-item active":"admin-nav-item"} onClick={()=>{setSection(item.id);setSidebarOpen(false);}}><item.icon size={17}/><span>{item.label}</span>{item.id==="messages"&&unread>0&&<b>{unread}</b>}</button></div>)}
       </nav>
       <div className="admin-sidebar-bottom"><div className="admin-help"><CircleHelp size={17}/><span><b>Precisa de ajuda?</b><small>Consulte o guia do painel</small></span><ChevronRight size={14}/></div><div className="admin-user"><div className="user-avatar">TS</div><div><b>Administrador</b><small>{live?(user?.email||"Administrador"):"Perfil de demonstração"}</small></div><button aria-label="Opções do perfil" onClick={onLogout}><MoreHorizontal size={18}/></button></div></div>
     </aside>
