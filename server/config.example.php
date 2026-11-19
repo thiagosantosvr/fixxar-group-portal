@@ -10,6 +10,7 @@ return [
     'session_name' => 'fixxar_admin',
     'session_secure' => true,
     'security_key' => 'REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS',
+    'setup_token' => 'REPLACE_WITH_A_PRIVATE_RANDOM_TOKEN_OF_AT_LEAST_64_CHARACTERS',
     'database' => [
         'host' => 'localhost',
         'port' => 3306,
