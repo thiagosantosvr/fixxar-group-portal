@@ -234,7 +234,7 @@ try {
     $admin = requireAdmin($pdo);
 
     if ($path === '/admin/users' && $method === 'GET') {
-        requireRole($admin, ['owner','administrator']);
+        requireRole($admin, ['owner']);
         $users = $pdo->query('SELECT id,name,email,role,is_active,last_login_at,created_at FROM admin_users ORDER BY name,id')->fetchAll();
         respond(200, ['users'=>$users]);
     }
