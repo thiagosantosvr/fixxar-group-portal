@@ -32,6 +32,8 @@ const checks = [
   ["exclusão de mídia com restauração em rollback", api.includes("$tombstone=$directory.'/'.bin2hex(random_bytes(16)).'.delete'") && api.includes("rename($tombstone,$file)")],
   ["bootstrap do suporte limita dados à caixa de entrada", /if \(\$admin\['role'\] === 'support'\)[\s\S]*?'pages'=>\[\][\s\S]*?'universes'=>\[\][\s\S]*?'settings'=>\[\][\s\S]*?'media'=>\[\]/.test(api)],
   ["bootstrap administrativo carrega CMS somente após filtro de suporte", api.indexOf("if ($admin['role'] === 'support')") < api.indexOf("$pages = $pdo->query('SELECT slug,title,content_json,status,updated_at FROM content_pages")],
+  ["interface do suporte abre diretamente na caixa de entrada", adminUi.includes('useState<Section>(live&&user?.role==="support"?"messages":"overview")')],
+  ["interface do suporte oculta seções fora da sua função", adminUi.includes('user?.role!=="support"||item.id==="messages"')],
   ["caixa de demonstração sem contatos fictícios", adminUi.includes("const initialMessages: Message[] = [];")],
   ["indicador de páginas calculado pelo CMS", adminUi.includes("String(institutionalPages.length+1)")]
 ];
