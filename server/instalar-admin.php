@@ -49,42 +49,24 @@ try {
     exit('Não foi possível conectar ao banco. Confira a configuração do servidor.');
 }
 
-// Use the PHP session storage configured by the hosting provider.
-// DreamHost may not allow PHP to create custom session directories under the site.
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    ini_set('session.use_strict_mode', '1');
-    ini_set('session.use_only_cookies', '1');
-    ini_set('session.use_trans_sid', '0');
-    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-    session_name('fixxar_setup');
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path' => '/',
-        'secure' => $isHttps,
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ]);
-    if (!@session_start()) {
-        error_log('[FIXXAR setup] PHP session_start failed; save_path=' . (string)ini_get('session.save_path'));
-        http_response_code(500);
-        exit('O servidor não conseguiu iniciar uma sessão PHP. Verifique a configuração de sessões PHP da hospedagem.');
-    }
-}
-if (!isset($_SESSION['setup_csrf'])) $_SESSION['setup_csrf'] = bin2hex(random_bytes(32));
-if (!isset($_SESSION['setup_attempts'])) $_SESSION['setup_attempts'] = 0;
+// CSRF stateless: avoids PHP sessions, which may be disabled or misconfigured on shared hosting.
+$csrfPayload = time() . '.' . bin2hex(random_bytes(16));
+$csrfToken = $csrfPayload . '.' . hash_hmac('sha256', $csrfPayload, $setupToken);
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-    if ((int)$_SESSION['setup_attempts'] >= 5) {
-        http_response_code(429);
-        $errorMessage = 'Muitas tentativas. Feche esta página e tente novamente mais tarde.';
+    $csrf = (string)($_POST['csrf'] ?? '');
+    $parts = explode('.', $csrf);
+    $validCsrf = false;
+    if (count($parts) === 3 && ctype_digit($parts[0]) && preg_match('/^[a-f0-9]{32}$/', $parts[1])) {
+        $issuedAt = (int)$parts[0];
+        $payload = $parts[0] . '.' . $parts[1];
+        $expected = hash_hmac('sha256', $payload, $setupToken);
+        $validCsrf = abs(time() - $issuedAt) <= 1800 && hash_equals($expected, $parts[2]);
+    }
+    if (!$validCsrf) {
+        http_response_code(419);
+        $errorMessage = 'Formulário expirado ou inválido. Atualize a página e tente novamente.';
     } else {
-        $csrf = (string)($_POST['csrf'] ?? '');
-        if (!hash_equals((string)$_SESSION['setup_csrf'], $csrf)) {
-            http_response_code(419);
-            $errorMessage = 'Sessão expirada. Atualize a página e tente novamente.';
-        } else {
-            $_SESSION['setup_attempts']++;
             $token = (string)($_POST['setup_token'] ?? '');
             $name = trim((string)($_POST['name'] ?? ''));
             $email = strtolower(trim((string)($_POST['email'] ?? '')));
@@ -122,7 +104,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                                 fclose($lock);
                                 $pdo->commit();
                                 $success = true;
-                                unset($_SESSION['setup_token'], $_SESSION['setup_csrf']);
                             }
                         }
                     }
@@ -132,7 +113,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $errorMessage = 'Não foi possível criar a conta. Verifique o log do servidor.';
                 }
             }
-        }
     }
 }
 ?><!doctype html>
@@ -150,7 +130,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 <?php else: ?>
 <?php if ($errorMessage !== ''): ?><div class="notice"><?= htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 <form method="post" autocomplete="off">
-<input type="hidden" name="csrf" value="<?= htmlspecialchars((string)$_SESSION['setup_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+<input type="hidden" name="csrf" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 <label for="setup_token">Token de instalação</label><input id="setup_token" name="setup_token" type="password" required autocomplete="off">
 <label for="name">Nome do responsável</label><input id="name" name="name" maxlength="120" required>
 <label for="email">E-mail de acesso</label><input id="email" name="email" type="email" maxlength="190" required autocomplete="username">
