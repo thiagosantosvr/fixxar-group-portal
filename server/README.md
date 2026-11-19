@@ -7,7 +7,7 @@ Backend próprio para hospedagem PHP 8.1+ com MySQL/MariaDB. Foi separado em `se
 - PHP 8.1 ou superior com PDO MySQL, mbstring e sessões habilitados.
 - MySQL 8 ou MariaDB compatível com colunas JSON.
 - HTTPS ativo no domínio.
-- Acesso ao gerenciador de banco e, para criar o primeiro administrador, SSH/CLI.
+- Acesso ao gerenciador de banco e ao Gerenciador de Arquivos da hospedagem; não é necessário usar terminal.
 
 ## Instalação controlada
 
@@ -16,11 +16,12 @@ Backend próprio para hospedagem PHP 8.1+ com MySQL/MariaDB. Foi separado em `se
 3. Copie `server/config.example.php` para `server/config.php`.
 4. Preencha host, nome, usuário e senha do banco. Configure a origem HTTPS canônica.
 5. Garanta que `server/config.php` não seja acessível pela web (o arquivo fica acima da pasta pública da API).
-6. Execute via SSH: `php server/bin/create-admin.php`. A senha deve ter pelo menos 14 caracteres; é armazenada com Argon2id.
-7. Configure o servidor para encaminhar `/api/*` para `server/api/index.php`, conforme a raiz de publicação adotada.
-8. Garanta permissão de escrita PHP na pasta `server/storage/media` (o diretório é criado no primeiro upload; não conceda permissão pública de execução).
-9. Ajuste `upload_max_filesize` e `post_max_size` do PHP para pelo menos 12 MB, mantendo o limite da aplicação em 10 MB.
-10. Teste `GET /api/health` e depois o fluxo de sessão/autenticação.
+6. Configure um `setup_token` privado de pelo menos 64 caracteres em `server/config.php`, diferente da `security_key`.
+7. Abra `https://www.fixxarestudios.com.br/server/instalar-admin.php`, informe o token, nome, e-mail e uma senha com pelo menos 14 caracteres para criar a primeira conta proprietária. O instalador só funciona enquanto não existir um proprietário ativo; após o sucesso, exclua imediatamente `server/instalar-admin.php` pelo Gerenciador de Arquivos.
+8. Configure o servidor para encaminhar `/api/*` para `server/api/index.php`, conforme a raiz de publicação adotada.
+9. Garanta permissão de escrita PHP na pasta `server/storage/media` (o diretório é criado no primeiro upload; não conceda permissão pública de execução).
+10. Ajuste `upload_max_filesize` e `post_max_size` do PHP para pelo menos 12 MB, mantendo o limite da aplicação em 10 MB.
+11. Teste `GET /api/health` e depois o fluxo de sessão/autenticação.
 
 Não envie `config.php`, senhas, dumps de produção ou credenciais para o repositório.
 
