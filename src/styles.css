@@ -213,3 +213,21 @@ body { font-size: calc(16px + 2pt); }
 @media (max-width: 640px) {
   .hero-copy, .pillar p, .institutional-body p { font-size: calc(1em + 2pt); }
 }
+
+/* YAD Sistemas Integrados — linguagem visual tecnológica */
+.artwork-yad-sistemas-integrados{background:radial-gradient(ellipse at 50% 50%,#253746,#111820 72%)}
+.artwork-yad-sistemas-integrados:before{inset:12%;border-color:#6fc7ff55;transform:rotate(45deg)}
+.artwork-yad-sistemas-integrados:after{inset:24%;border-color:#ff751f80;transform:rotate(-18deg)}
+.artwork-yad-sistemas-integrados .shape-one{width:54%;height:54%;border:1px solid #6fc7ff80;border-radius:50%;box-shadow:0 0 30px #279fe833,inset 0 0 28px #279fe822}
+.artwork-yad-sistemas-integrados .shape-two{width:70%;height:1px;background:linear-gradient(90deg,transparent,#6fc7ff,transparent);transform:rotate(35deg)}
+.artwork-yad-sistemas-integrados .shape-three{width:12px;height:12px;border-radius:50%;background:#ff751f;box-shadow:0 0 24px #ff751f;top:25%;right:24%}
+.artwork-yad-sistemas-integrados .art-monogram{font-size:66px;color:#eaf7ff;text-shadow:0 0 28px #45b9ff80}
+/* Scroll-triggered reveals */
+.scroll-reveal{opacity:0;transform:translate3d(0,34px,0) scale(.985);filter:blur(5px);transition:opacity .8s cubic-bezier(.2,.75,.25,1),transform .85s cubic-bezier(.2,.75,.25,1),filter .85s ease;will-change:opacity,transform,filter}
+.scroll-reveal.is-visible{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0);will-change:auto}
+.universe-card.scroll-reveal:nth-child(3n+2),.pillar.scroll-reveal:nth-child(even){transition-delay:.1s}
+.universe-card.scroll-reveal:nth-child(3n),.pillar.scroll-reveal:nth-child(3n){transition-delay:.18s}
+.process-track article.scroll-reveal:nth-child(2){transition-delay:.08s}
+.process-track article.scroll-reveal:nth-child(3){transition-delay:.16s}
+.process-track article.scroll-reveal:nth-child(4){transition-delay:.24s}
+@media(prefers-reduced-motion:reduce){.scroll-reveal,.scroll-reveal.is-visible{opacity:1;transform:none;filter:none;transition:none}}
