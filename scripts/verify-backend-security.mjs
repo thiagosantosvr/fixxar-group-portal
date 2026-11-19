@@ -41,7 +41,7 @@ const checks = [
 ];
 
 const cmsAtomicityChecks = [
-  ["salvar página institucional e auditoria na mesma transação", /INSERT INTO content_pages \(slug,title,content_json,status,updated_by\)[\s\S]*?\$pdo->beginTransaction\(\);[\s\S]*?audit\(\$pdo,\$admin,'page\.save_draft','page',\$slug\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
+  ["salvar página institucional e auditoria na mesma transação", /\$pdo->beginTransaction\(\);[\s\S]*?INSERT INTO content_pages \(slug,title,content_json,status,updated_by\)[\s\S]*?audit\(\$pdo,\$admin,'page\.save_draft','page',\$slug\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
   ["publicar página institucional com lock e auditoria atômica", /SELECT id FROM content_pages WHERE slug=\? LIMIT 1 FOR UPDATE[\s\S]*?audit\(\$pdo,\$admin,'page\.publish','page',\$slug\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
   ["salvar página inicial e auditoria na mesma transação", /INSERT INTO content_pages \(slug,title,content_json,status,updated_by\) VALUES \('home'[\s\S]*?audit\(\$pdo, \$admin, 'page\.save_draft', 'page', 'home'\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
   ["publicar página inicial com lock e auditoria atômica", /SELECT id FROM content_pages WHERE slug='home' LIMIT 1 FOR UPDATE[\s\S]*?audit\(\$pdo, \$admin, 'page\.publish', 'page', 'home'\);[\s\S]*?\$pdo->commit\(\);/.test(api)],
