@@ -6,7 +6,8 @@ export type Universe = {
   detail: string;
   category: "Estratégia" | "Imagem" | "Editorial" | "Infantil" | "Personalização" | "Tecnologia";
   url?: string;
-  status: "active" | "in-development";
+  status: "active" | "in-development" | "archived";
+  sortOrder?: number;
 };
 
 export const universes: Universe[] = [
