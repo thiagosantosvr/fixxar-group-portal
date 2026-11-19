@@ -1,6 +1,6 @@
 export type AdminUser = { id: number; name: string; email: string; role: string };
 export type ApiSession = { authenticated: boolean; user?: AdminUser; csrfToken?: string };
-export type HomePageContent = { headline: string; subheadline: string; intro: string; groupHeadline: string; groupLead: string; groupBody: string; processHeadline: string; processIntro: string; processSteps: Array<{ title: string; text: string }> };
+export type HomePageContent = { headline: string; subheadline: string; intro: string; groupHeadline: string; groupLead: string; groupBody: string; processHeadline: string; processIntro: string; universeEyebrow:string; universeHeadline:string; universeAccent:string; universeIntro:string; essenceHeadline:string; essenceAccent:string; essenceIntro:string; closingHeadline:string; closingAccent:string; closingIntro:string; processSteps: Array<{ title: string; text: string }> };
 export type ApiBootstrap = {
   pages: Array<{ slug: string; title:string; status:"draft"|"published"; updated_at?:string; content: Partial<HomePageContent> & {summary?:string; content?:string} }>;
   universes: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: "active" | "in-development" | "archived"; sort_order: number }>;
