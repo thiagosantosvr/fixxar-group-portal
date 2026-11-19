@@ -27,14 +27,14 @@ function PublicPortal() {
     let active = true;
     fetch("/api/public/content", { headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(response => { if (!response.ok) throw new Error("Public content unavailable"); return response.json(); })
-      .then((data: { page?: { content?: Partial<typeof portalCopy> } | null; seo?: { title?: string; description?: string }; maintenance?: boolean; settings?: Record<string,string>; pages?: Array<{slug:string;title:string}>; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string }> }) => {
+      .then((data: { page?: { content?: Partial<typeof portalCopy> } | null; seo?: { title?: string; description?: string }; maintenance?: boolean; settings?: Record<string,string>; pages?: Array<{slug:string;title:string}>; universes?: Array<{ slug: string; name: string; eyebrow: string; description: string; detail: string; category: string; website_url?: string | null; status: string; sort_order?:number }> }) => {
         if (!active) return;
         if (data.page?.content) setPortalCopy(current => ({ ...current, ...data.page?.content }));
         if (data.seo) setSeoMeta(current => ({title:data.seo?.title || current.title,description:data.seo?.description || current.description}));
         setMaintenanceActive(data.maintenance === true);
         setPublicSettings(data.settings || {});
         setPublishedPages(data.pages || []);
-        if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "active" ? "active" : "in-development" })));
+        if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "archived" ? "archived" : item.status === "active" ? "active" : "in-development", sortOrder:item.sort_order })));
       }).catch(() => { /* Static content remains available when the API is not configured. */ });
     return () => { active = false; };
   }, []);
