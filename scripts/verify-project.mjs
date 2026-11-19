@@ -54,14 +54,14 @@ const requirements = [
   ["grupo institucional", app.includes("FIXXAR GROUP")],
   ["universos de marca", universeEntries.length > 0],
   ["pilares", data.includes("export const pillars")],
-  ["seis universos cadastrados incluindo YAD", universeIds.length === 6 && universeEntries.length === 6 && universeIds.includes("yad-sistemas-integrados")],
+  ["sete universos cadastrados incluindo YAD e ST SEG", universeIds.length === 7 && universeEntries.length === 7 && universeIds.includes("yad-sistemas-integrados") && universeIds.includes("st-seg")],
   ["identificadores únicos", universeIds.length === new Set(universeIds).size],
   ["links ativos em HTTPS", activeEntries.length === 2 && activeEntries.every((entry) => /\burl:\s*"https:\/\//.test(entry))],
   ["backup inclui páginas institucionais", admin.includes("institutionalPages,")],
   ["backup inclui índice de mídia", admin.includes("mediaIndex:mediaAssets.map")],
   ["backup documenta exclusão de binários e credenciais", admin.includes("não os arquivos binários das imagens") && admin.includes("hashes de senha e tokens de sessão não são exportados")],
   ["backup identifica versão do formato", admin.includes("schemaVersion:2") && admin.includes('format:"fixxar-group-backup"')],
-  ["universos em desenvolvimento sem URL publicada", developmentEntries.length === 4 && developmentEntries.every((entry) => !/\burl:/.test(entry))]
+  ["universos em desenvolvimento sem URL publicada", developmentEntries.length === 5 && developmentEntries.every((entry) => !/\burl:/.test(entry))]
 ];
 
 let failed = false;
