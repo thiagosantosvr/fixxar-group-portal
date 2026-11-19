@@ -105,3 +105,10 @@ VALUES
 
 INSERT IGNORE INTO content_pages (slug,title,content_json,status)
 VALUES ('home','Página inicial','{"headline":"Ideias que ganham forma.","subheadline":"Marcas que deixam marcas.","intro":"Somos um grupo que conecta criatividade, comunicação, conhecimento e inovação para transformar ideias em experiências com significado.","groupHeadline":"Um grupo. Muitas formas de transformar.","groupLead":"A FIXXAR GROUP reúne diferentes competências em um ecossistema que transforma ideias em projetos, marcas e experiências.","groupBody":"Atuamos em universos distintos, mas conectados por uma mesma visão: fazer bem-feito, com propósito, consistência e atenção aos detalhes.","processHeadline":"O movimento por trás da ideia.","processIntro":"Uma ideia merece mais do que existir. Ela merece encontrar seu caminho, ganhar consistência e chegar às pessoas.","processSteps":[{"title":"Imaginar","text":"Enxergar possibilidades e descobrir o que ainda pode existir."},{"title":"Construir","text":"Dar estrutura, linguagem e intenção para cada projeto."},{"title":"Conectar","text":"Aproximar ideias, pessoas e experiências que fazem sentido."},{"title":"Transformar","text":"Levar o que foi imaginado para o mundo real."}]}','published');
+
+-- Atualização incremental FIXXAR GROUP: cadastrar YAD Sistemas Integrados.
+-- Seguro para executar mais de uma vez; não altera os demais universos.
+INSERT IGNORE INTO brand_universes
+(slug,name,eyebrow,description,detail,category,website_url,status,sort_order)
+VALUES
+('yad-sistemas-integrados','YAD Sistemas Integrados','Tecnologia & integração','Soluções integradas para conectar processos, sistemas e operações.','Unidade de tecnologia dedicada a sistemas integrados e soluções digitais. Informações comerciais e endereço oficial serão definidos na etapa de lançamento.','Tecnologia',NULL,'in-development',6);
