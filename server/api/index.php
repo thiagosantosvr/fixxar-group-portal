@@ -217,7 +217,7 @@ try {
         $page = $pageQuery->fetch();
         if ($page) $page['content'] = jsonColumn($page, 'content_json');
         unset($page['content_json']);
-        $universes = $pdo->query("SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order FROM brand_universes WHERE status IN ('active','in-development') ORDER BY sort_order,id")->fetchAll();
+        $universes = $pdo->query("SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order,logo_url,cover_image_url,contact_email,contact_phone,whatsapp_url,instagram_url,facebook_url,youtube_url,linkedin_url,contact_address FROM brand_universes WHERE status IN ('active','in-development') ORDER BY sort_order,id")->fetchAll();
         // Keep the YAD visible on the institutional portal even when an older
         // production database has not yet received the incremental YAD migration.
         $yadSlug = 'yad-sistemas-integrados';
@@ -236,6 +236,9 @@ try {
                 'website_url' => null,
                 'status' => 'in-development',
                 'sort_order' => 6,
+                'logo_url' => null, 'cover_image_url' => null, 'contact_email' => null, 'contact_phone' => null,
+                'whatsapp_url' => null, 'instagram_url' => null, 'facebook_url' => null, 'youtube_url' => null,
+                'linkedin_url' => null, 'contact_address' => null,
             ];
         }
 
@@ -344,7 +347,7 @@ try {
         $pages = $pdo->query('SELECT slug,title,content_json,status,updated_at FROM content_pages ORDER BY slug')->fetchAll();
         foreach ($pages as &$page) $page['content'] = jsonColumn($page, 'content_json');
         unset($page);
-        $brands = $pdo->query('SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order,updated_at FROM brand_universes ORDER BY sort_order,id')->fetchAll();
+        $brands = $pdo->query('SELECT slug,name,eyebrow,description,detail,category,website_url,status,sort_order,logo_url,cover_image_url,contact_email,contact_phone,whatsapp_url,instagram_url,facebook_url,youtube_url,linkedin_url,contact_address,updated_at FROM brand_universes ORDER BY sort_order,id')->fetchAll();
         $settings = $pdo->query('SELECT setting_key,setting_value FROM site_settings ORDER BY setting_key')->fetchAll();
         $media = $pdo->query('SELECT id,original_name,storage_name,mime_type,file_size,alt_text,created_at FROM media_assets ORDER BY created_at DESC LIMIT 200')->fetchAll();
         foreach ($settings as &$setting) $setting['value'] = json_decode((string)$setting['setting_value'], true);
@@ -451,8 +454,18 @@ try {
         $url = trim((string)($input['website_url'] ?? ''));
         if ($name === '' || mb_strlen($name)>180 || mb_strlen($category)>80 || !in_array($status,['active','in-development','archived'],true)) respond(422, ['error'=>'invalid_universe']);
         if ($url !== '' && (!filter_var($url,FILTER_VALIDATE_URL) || !str_starts_with($url,'https://'))) respond(422, ['error'=>'invalid_https_url']);
-        $values = [$name,trim((string)($input['eyebrow']??'')),trim((string)($input['description']??'')),trim((string)($input['detail']??'')),$category,$url ?: null,$status,(int)($input['sort_order']??0),(int)$admin['id'],$slug];
-        $q = $pdo->prepare('INSERT INTO brand_universes (name,eyebrow,description,detail,category,website_url,status,sort_order,updated_by,slug) VALUES (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),eyebrow=VALUES(eyebrow),description=VALUES(description),detail=VALUES(detail),category=VALUES(category),website_url=VALUES(website_url),status=VALUES(status),sort_order=VALUES(sort_order),updated_by=VALUES(updated_by)');
+        $profile = [];
+        foreach (['logo_url','cover_image_url','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address'] as $field) {
+            $value = trim((string)($input[$field] ?? ''));
+            if (mb_strlen($value) > 500) respond(422, ['error'=>'invalid_universe_field','field'=>$field]);
+            if (in_array($field,['whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url'],true) && $value !== '' && (!filter_var($value,FILTER_VALIDATE_URL) || !str_starts_with($value,'https://'))) respond(422,['error'=>'invalid_https_url','field'=>$field]);
+            if ($field === 'contact_email' && $value !== '' && !filter_var($value,FILTER_VALIDATE_EMAIL)) respond(422,['error'=>'invalid_email','field'=>$field]);
+            $profile[$field] = $value !== '' ? $value : null;
+        }
+        $values = [$name,trim((string)($input['eyebrow']??'')),trim((string)($input['description']??'')),trim((string)($input['detail']??'')),$category,$url ?: null,$status,(int)($input['sort_order']??0),...array_values($profile),(int)$admin['id'],$slug];
+        $columns = 'name,eyebrow,description,detail,category,website_url,status,sort_order,logo_url,cover_image_url,contact_email,contact_phone,whatsapp_url,instagram_url,facebook_url,youtube_url,linkedin_url,contact_address,updated_by,slug';
+        $updates = 'name=VALUES(name),eyebrow=VALUES(eyebrow),description=VALUES(description),detail=VALUES(detail),category=VALUES(category),website_url=VALUES(website_url),status=VALUES(status),sort_order=VALUES(sort_order),logo_url=VALUES(logo_url),cover_image_url=VALUES(cover_image_url),contact_email=VALUES(contact_email),contact_phone=VALUES(contact_phone),whatsapp_url=VALUES(whatsapp_url),instagram_url=VALUES(instagram_url),facebook_url=VALUES(facebook_url),youtube_url=VALUES(youtube_url),linkedin_url=VALUES(linkedin_url),contact_address=VALUES(contact_address),updated_by=VALUES(updated_by)';
+        $q = $pdo->prepare("INSERT INTO brand_universes ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE $updates");
         $q->execute($values);
         audit($pdo, $admin, 'universe.save', 'universe', $slug);
         respond(200, ['ok'=>true,'slug'=>$slug]);
