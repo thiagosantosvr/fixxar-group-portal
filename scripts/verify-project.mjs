@@ -16,7 +16,6 @@ for (const [label, ok] of bootstrapChecks) {
   if (!ok) process.exitCode = 1;
 }
 
-
 const demoIsolationChecks = [
   ["universos demo não aparecem antes do bootstrap em sessão real", /useState<Universe\[]>\(\(\)=>live\?\[\]:readSaved\("fixxar-admin-universes",universes\)\)/.test(admin)],
   ["mensagens locais não contaminam a sessão real", /useState<Message\[]>\(\(\)=>live\?\[\]:readSaved\("fixxar-admin-messages",initialMessages\)\)/.test(admin)],
@@ -27,13 +26,13 @@ for (const [label, ok] of demoIsolationChecks) {
   console.log(`${ok ? "✓" : "✗"} ${label}`);
   if (!ok) process.exitCode = 1;
 }
+
 const universeSource = data.match(/export const universes:\s*Universe\[\]\s*=\s*\[([\s\S]*?)\];/)?.[1] ?? "";
 const universeEntries = [...universeSource.matchAll(/\{([^{}]*)\}/g)].map((match) => match[1]);
 const universeIds = universeEntries.map((entry) => entry.match(/\bid:\s*"([^"]+)"/)?.[1]).filter(Boolean);
 const activeEntries = universeEntries.filter((entry) => /\bstatus:\s*"active"/.test(entry));
 const developmentEntries = universeEntries.filter((entry) => /\bstatus:\s*"in-development"/.test(entry));
 
-const admin = readFileSync("src/Admin.tsx", "utf8");\n\n
 const textExportChecks = [
   ["slug institucional remove diacríticos após normalização Unicode", admin.includes('title.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")')],
   ["exportação CSV usa BOM Unicode real", admin.includes('const csv="\\uFEFF"')],
