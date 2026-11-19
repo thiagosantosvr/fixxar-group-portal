@@ -20,7 +20,7 @@ const checks = [
   ["senhas Argon2id", api.includes("PASSWORD_ARGON2ID") && admin.includes("PASSWORD_ARGON2ID")],
   ["criação inicial restrita a CLI", admin.includes("PHP_SAPI !== 'cli'")],
   ["chave de segurança não padrão no modelo", config.includes("REPLACE_WITH_AT_LEAST_64_RANDOM_HEX_CHARACTERS")],
-  ["configurações limitadas a chaves conhecidas", api.includes("$allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','maintenance']")],
+  ["configurações limitadas a chaves conhecidas", api.includes("$allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','maintenance']")],
   ["e-mail de contato validado", api.includes("filter_var($value,FILTER_VALIDATE_EMAIL)")],
   ["perfil individual de marca validado", api.includes("$profile = [];") && api.includes("invalid_image_url") && api.includes("invalid_https_url") && api.includes("invalid_email")],
   ["migração incremental de perfis de marca", readFileSync("server/database/migrations/2026-11-19-brand-profiles.sql", "utf8").includes("ALTER TABLE brand_universes")],
