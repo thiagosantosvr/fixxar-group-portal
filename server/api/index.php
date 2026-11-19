@@ -377,7 +377,7 @@ try {
     if ($path === '/admin/pages/home' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator','editor']);
         $input = body();
-        $allowed = ['headline','subheadline','intro','groupHeadline','groupLead','groupBody','processHeadline','processIntro'];
+        $allowed = ['headline','subheadline','intro','groupHeadline','groupLead','groupBody','processHeadline','processIntro','universeEyebrow','universeHeadline','universeAccent','universeIntro','essenceHeadline','essenceAccent','essenceIntro','closingHeadline','closingAccent','closingIntro'];
         $content = [];
         foreach ($allowed as $key) {
             if (!isset($input[$key]) || !is_string($input[$key]) || mb_strlen($input[$key]) > 3000) respond(422, ['error'=>'invalid_page_content','field'=>$key]);
