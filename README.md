@@ -21,9 +21,18 @@ Portal institucional de entrada para o ecossistema Fixxar. Apresenta o grupo e e
 
 Os três universos sem URL confirmada são apresentados como em desenvolvimento. Nenhum endereço ou contato foi inventado.
 
-## Painel de controle e API\n\n- Rota administrativa: `/painel`.\n- Interface com visão geral, editor de conteúdo, cadastro de universos, mensagens, biblioteca de mídia, desempenho e configurações.\n- API PHP em `server/api/`, esquema MySQL em `server/database/schema.sql` e criação segura do primeiro administrador por CLI.\n- A API contempla sessão, CSRF, papéis de acesso, auditoria e operações de conteúdo.\n- O painel frontend permanece em modo de demonstração até a integração da sessão e dos dados reais. Não inserir credenciais no Git.\n- Consulte `server/README.md` e `DEPLOY-DREAMHOST.md` antes de ativar qualquer recurso no servidor.\n\n## Tecnologia e custo
+## Painel de controle e API
 
-React 19, TypeScript, Vite, Framer Motion e Lucide React. Requer Node.js 20 ou superior para desenvolvimento e geração do build. O resultado é HTML/CSS/JS estático: não exige servidor Node, banco de dados, PHP, serviço pago ou assinatura adicional na DreamHost.
+- Rota administrativa: `/painel`.
+- Interface com visão geral, editor de conteúdo, cadastro de universos, mensagens, biblioteca de mídia, desempenho e configurações.
+- API PHP em `server/api/`, esquema MySQL em `server/database/schema.sql` e criação segura do primeiro administrador por CLI.
+- A API contempla sessão, CSRF, papéis de acesso, auditoria e operações de conteúdo.
+- O frontend do painel está integrado à API autenticada; sem API configurada, entra em modo de demonstração local. Não inserir credenciais no Git.
+- Consulte `server/README.md` e `DEPLOY-DREAMHOST.md` antes de ativar qualquer recurso no servidor.
+
+## Tecnologia e custo
+
+React 19, TypeScript, Vite, Framer Motion e Lucide React. Requer Node.js 20 ou superior para desenvolvimento e geração do build. A interface pública é compilada em arquivos estáticos. O modo integrado do formulário de contato e do painel exige PHP 8.1+ e MySQL/MariaDB na hospedagem.
 
 ## Desenvolvimento
 
