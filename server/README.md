@@ -36,7 +36,10 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | GET | /api/public/content | Público | Entrega apenas página inicial publicada e universos não arquivados |
 | GET | /api/media/{storage_name} | Público | Entrega imagem cadastrada após consulta ao banco |
 | GET | /api/admin/audit-log | Owner | Consulta histórico de ações administrativas |
-| GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens, configurações e biblioteca de mídia |\n| GET | /api/admin/users | Owner/Admin | Lista contas administrativas |\n| POST | /api/admin/users | Owner + CSRF | Cria conta com senha Argon2id |\n| PATCH | /api/admin/users/{id} | Owner + CSRF | Atualiza nome, papel, acesso e senha |
+| GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens, configurações e biblioteca de mídia |
+| GET | /api/admin/users | Owner | Lista contas administrativas |
+| POST | /api/admin/users | Owner + CSRF | Cria conta com senha Argon2id |
+| PATCH | /api/admin/users/{id} | Owner + CSRF | Atualiza nome, papel, acesso e senha |
 | PUT | /api/admin/pages/{slug} | Editor + CSRF | Salva rascunho de página institucional independente |
 | POST | /api/admin/pages/{slug}/publish | Editor + CSRF | Publica página institucional no CMS |
 | PATCH | /api/admin/pages/home | Editor + CSRF | Salva rascunho da página inicial |
@@ -57,12 +60,13 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 - Alterações de papel e suspensão de proprietários são protegidas por transação e bloqueios de linha (`SELECT ... FOR UPDATE`), preservando o último proprietário ativo mesmo diante de requisições concorrentes.
 - Validação de URLs HTTPS para links externos.
 - Respostas sem cache e cabeçalhos básicos de segurança.
-- Auditoria de login, logout, falhas de autenticação e alterações administrativas.\n- Bloqueio temporário por combinação de e-mail e IP após cinco falhas em quinze minutos, persistido no banco de auditoria e com cabeçalho `Retry-After`.
+- Auditoria de login, logout, falhas de autenticação e alterações administrativas.
+- Bloqueio temporário por combinação de e-mail e IP após cinco falhas em quinze minutos, persistido no banco de auditoria e com cabeçalho `Retry-After`.
 - Erros internos registrados no log do servidor, sem expor detalhes ao visitante.
 
 ## Estado atual e pendências de produção
 
-O painel consulta a API autenticada para páginas, universos, mensagens, configurações, biblioteca de mídia e contas administrativas. O gerenciamento de usuários é exclusivo do proprietário; permite criar contas, alterar papéis e suspender acessos, preservando pelo menos um proprietário ativo. A página inicial pode ser salva como rascunho e publicada explicitamente. Páginas institucionais adicionais podem ser criadas, editadas e publicadas individualmente no CMS. O frontend resolve páginas públicas por slug, exibe somente conteúdos publicados e inclui os links publicados na navegação principal. Quando a API não está configurada, o portal mantém a apresentação estática de contingência.
+O frontend do painel está integrado à API autenticada para sessão, páginas, universos, mensagens, configurações, biblioteca de mídia e contas administrativas. Quando a API não está configurada, o painel entra em modo de demonstração local; quando configurada, exige autenticação real. O gerenciamento de usuários é exclusivo do proprietário; permite criar contas, alterar papéis e suspender acessos, preservando pelo menos um proprietário ativo. A página inicial pode ser salva como rascunho e publicada explicitamente. Páginas institucionais adicionais podem ser criadas, editadas e publicadas individualmente no CMS. O frontend resolve páginas públicas por slug, exibe somente conteúdos publicados e inclui os links publicados na navegação principal. Quando a API não está configurada, o portal mantém a apresentação estática de contingência.
 
 A biblioteca aceita imagens JPG, PNG e WebP de até 10 MB. Além do MIME detectado por `finfo`, o upload valida a assinatura/dimensões com `getimagesize` e rejeita imagens acima de 40 milhões de pixels. O cadastro e o log são transacionais; se o banco falhar, o arquivo recém-enviado é removido. Na exclusão, o arquivo é movido temporariamente para uma extensão não pública, o registro é removido em transação e o arquivo temporário é apagado após o commit; em rollback, tenta restaurar o arquivo original. Os arquivos ficam em `server/storage/media`, fora do acesso HTTP direto; a entrega pública passa por uma rota que valida o nome no banco. Exclusão de mídia exige papel owner/administrator. Antes de produção, ainda é necessário validar permissões de escrita, limites PHP, backup e retenção no ambiente real, definir `security_key` aleatória no `config.php` (mínimo recomendado: 32 bytes aleatórios), revisar política de proxy/IP e CORS, e executar testes de segurança. A limitação de login usa a tabela `admin_audit_log` já criada pelo schema.
 
