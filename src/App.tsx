@@ -147,7 +147,7 @@ function PublicPortal() {
       </nav>
     </header>
 
-    <main id="conteudo">
+    <main id="conteudo" style={{["--body-copy-size" as string]: `${Math.max(14, Math.min(22, Number(publicSettings.body_text_size) || 14))}px` } as React.CSSProperties}>
       <section className="hero" id="inicio">
         <div className="hero-grain" />
         <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
@@ -161,9 +161,7 @@ function PublicPortal() {
           <div className="hero-art-ring ring-a" />
           <div className="hero-art-ring ring-b" />
           <div className="hero-art-ring ring-c" />
-          <div className="hero-art-core"><span>F</span><b>×</b></div>
-          <div className="hero-art-label label-top">IDEAS INTO FORM</div>
-          <div className="hero-art-label label-bottom">BRANDS WITH PURPOSE</div>
+          <div className="hero-art-core"><img className="hero-brand-logo" src="/fixxar-group-logo.svg" alt="FIXXAR GROUP" /></div>
           <div className="hero-art-node node-one" />
           <div className="hero-art-node node-two" />
         </div>
@@ -177,7 +175,7 @@ function PublicPortal() {
 
       <section className="universes section-pad" id="universos">
         <div className="section-kicker light-kicker"><span>02</span><span>NOSSOS UNIVERSOS</span></div>
-        <div className="section-heading"><div><p className="eyebrow">{portalCopy.universeEyebrow}</p><h2>{portalCopy.universeHeadline}<br /><em>{portalCopy.universeAccent}</em></h2></div><p>{portalCopy.universeIntro}</p></div>
+        <div className="section-heading"><div><p className="eyebrow">{portalCopy.universeEyebrow}</p><h2>{portalCopy.universeHeadline}<br /><em>{portalCopy.universeAccent}</em></h2></div><p className="universe-highlight">{portalCopy.universeIntro}</p></div>
         <div className="filter-list" role="group" aria-label="Filtrar universos">{filters.map((item) => <button key={item} className={filter === item ? "filter active" : "filter"} onClick={() => setFilter(item)} aria-pressed={filter === item}>{item}</button>)}</div>
         <p className="results-count" role="status" aria-live="polite">{visible.length} {visible.length === 1 ? "universo encontrado" : "universos encontrados"}</p>
         <div className="universe-grid" aria-live="polite">{visible.map((item, index) => <motion.article layout key={item.id} className="universe-card" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .4, delay: index * .05 }}>
