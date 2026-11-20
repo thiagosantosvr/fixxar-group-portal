@@ -7,7 +7,7 @@ import InstitutionalPage from "./InstitutionalPage";
 
 const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização", "Tecnologia"] as const;
 
-const officialBrandLogos: Record<string,string> = { agencia: "/brand-logos/agencia-digital.png", fotografia: "/brand-logos/thiago-santos-estudio.png", editora: "/brand-logos/entre-o-ceu-e-papel.png", "tio-moises": "/brand-logos/falai-tio-moises.png", brindes: "/brand-logos/brindes.png", "st-seg": "/brand-logos/st-seg.png" };
+const officialBrandLogos: Record<string,string> = { agencia: "/brand-logos/agencia-digital.png", fotografia: "/brand-logos/thiago-santos-estudio.png", editora: "/brand-logos/entre-o-ceu-e-papel.png", "tio-moises": "/brand-logos/falai-tio-moises.png", brindes: "/brand-logos/brindes.png", "st-seg": "/brand-logos/st-seg.png", "yad-sistemas-integrados": "/brand-logos/yad.png" };
 
 
 function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolean }) {
