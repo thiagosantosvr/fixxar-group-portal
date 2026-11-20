@@ -280,7 +280,8 @@ body{font-size:12px}
 
 /* Revisão de hierarquia visual solicitada — FIXXAR GROUP */
 .hero-art-core{width:min(76%,520px);aspect-ratio:1;border-radius:50%;padding:12%;font-size:0;letter-spacing:0}
-.hero-brand-logo{display:block;width:100%;height:auto;max-height:160px;object-fit:contain;filter:drop-shadow(0 8px 24px #0008)}
+.hero-brand-logo{display:block;width:100%;height:100%;max-height:none;min-width:0;object-fit:contain;filter:drop-shadow(0 8px 24px #0008)}
+.hero-art-core{background:transparent!important;box-shadow:none!important;text-shadow:none!important;padding:0!important;font-size:0!important;letter-spacing:0!important}
 .hero-art-label{display:none!important}
 .manifesto .section-kicker{font-size:14px}
 .manifesto-text p{font-size:max(14px,var(--body-copy-size,14px));line-height:1.85}
@@ -289,5 +290,5 @@ body{font-size:12px}
 .process-intro>p{font-size:max(16px,var(--body-copy-size,14px));line-height:1.85}
 .hero-copy,.manifesto-text p,.section-heading>p,.process-intro>p,.card-description,.process-track article p,.pillar p,.closing>p:not(.eyebrow){font-size:max(14px,var(--body-copy-size,14px))!important}
 .card-description,.process-track article p,.pillar p{line-height:1.8}
-.hero-brand-logo{min-width:220px}
-@media(max-width:700px){.hero-brand-logo{min-width:150px}.universe-highlight{font-size:16px!important;padding:18px}.manifesto .section-kicker{font-size:12px}}
+.hero-brand-logo{min-width:0}
+@media(max-width:700px){.hero-brand-logo{min-width:0}.universe-highlight{font-size:16px!important;padding:18px}.manifesto .section-kicker{font-size:12px}}
