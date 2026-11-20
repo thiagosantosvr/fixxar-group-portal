@@ -243,7 +243,7 @@ try {
         }
 
         $publishedPages = $pdo->query("SELECT slug,title FROM content_pages WHERE status='published' AND slug<>'home' ORDER BY title")->fetchAll();
-        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance','site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text')");
+        $settingQuery = $pdo->prepare("SELECT setting_key,setting_value FROM site_settings WHERE setting_key IN ('seo_title','seo_description','maintenance','site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','body_text_size')");
         $settingQuery->execute();
         $seo = ['title'=>'FIXXAR GROUP — Ideias que ganham forma','description'=>'Criatividade, comunicação, conhecimento e inovação em um ecossistema de marcas.'];
         $maintenance = false;
