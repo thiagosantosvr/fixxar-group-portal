@@ -7,6 +7,9 @@ import InstitutionalPage from "./InstitutionalPage";
 
 const filters = ["Todos", "Estratégia", "Imagem", "Editorial", "Infantil", "Personalização", "Tecnologia"] as const;
 
+const officialBrandLogos: Record<string,string> = { agencia: "/brand-logos/agencia-digital.png", fotografia: "/brand-logos/thiago-santos-estudio.png", editora: "/brand-logos/entre-o-ceu-e-papel.png", "tio-moises": "/brand-logos/falai-tio-moises.png", brindes: "/brand-logos/brindes.png", "st-seg": "/brand-logos/st-seg.png" };
+
+
 function UniverseArtwork({ id, compact = false }: { id: string; compact?: boolean }) {
   return <div className={`universe-artwork artwork-${id}${compact ? " is-compact" : ""}`} aria-hidden="true">
     <span className="art-shape shape-one" /><span className="art-shape shape-two" /><span className="art-shape shape-three" />
@@ -34,7 +37,7 @@ function PublicPortal() {
         setMaintenanceActive(data.maintenance === true);
         setPublicSettings({ contact_email:"thiago@fixxarestudios.com.br", contact_phone:"+5524998212820", contact_address:"Volta Redonda - RJ, Brasil", whatsapp_url:"https://wa.me/5524998212820?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20FIXXAR%20GROUP%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es.", ...(data.settings || {}) });
         setPublishedPages(data.pages || []);
-        if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "archived" ? "archived" : item.status === "active" ? "active" : "in-development", sortOrder:item.sort_order,logoUrl:item.logo_url||undefined,logoBackground:item.logo_background||undefined,coverImageUrl:item.cover_image_url||undefined,contactEmail:item.contact_email||undefined,contactPhone:item.contact_phone||undefined,whatsappUrl:item.whatsapp_url||undefined,instagramUrl:item.instagram_url||undefined,facebookUrl:item.facebook_url||undefined,youtubeUrl:item.youtube_url||undefined,linkedinUrl:item.linkedin_url||undefined,address:item.contact_address||undefined })));
+        if (data.universes?.length) setPublicUniverses(data.universes.map(item => ({ id: item.slug, name: item.name, eyebrow: item.eyebrow, description: item.description, detail: item.detail, category: item.category as (typeof universes)[number]["category"], url: item.website_url || undefined, status: item.status === "archived" ? "archived" : item.status === "active" ? "active" : "in-development", sortOrder:item.sort_order,logoUrl:item.logo_url||officialBrandLogos[item.slug]||undefined,logoBackground:item.logo_background||undefined,coverImageUrl:item.cover_image_url||undefined,contactEmail:item.contact_email||undefined,contactPhone:item.contact_phone||undefined,whatsappUrl:item.whatsapp_url||undefined,instagramUrl:item.instagram_url||undefined,facebookUrl:item.facebook_url||undefined,youtubeUrl:item.youtube_url||undefined,linkedinUrl:item.linkedin_url||undefined,address:item.contact_address||undefined })));
       }).catch(() => { /* Static content remains available when the API is not configured. */ });
     return () => { active = false; };
   }, []);
