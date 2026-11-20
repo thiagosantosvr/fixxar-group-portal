@@ -292,3 +292,12 @@ body{font-size:12px}
 .card-description,.process-track article p,.pillar p{line-height:1.8}
 .hero-brand-logo{min-width:0}
 @media(max-width:700px){.hero-brand-logo{min-width:0}.universe-highlight{font-size:16px!important;padding:18px}.manifesto .section-kicker{font-size:12px}}
+
+
+/* Floating WhatsApp contact — persistent on every public page */
+.floating-whatsapp{position:fixed;z-index:30;right:24px;bottom:24px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:0 20px;border-radius:999px;background:#20c767;color:#fff;box-shadow:0 8px 28px #0004,0 0 0 1px #ffffff35;font:700 14px Arial,Helvetica,sans-serif;letter-spacing:.01em;transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+.floating-whatsapp svg{width:30px;height:30px;flex:0 0 30px}
+.floating-whatsapp:hover{background:#19b85b;transform:translateY(-3px);box-shadow:0 12px 32px #0005}
+.floating-whatsapp:focus-visible{outline:3px solid #111;outline-offset:4px}
+@media(max-width:640px){.floating-whatsapp{right:16px;bottom:16px;min-height:56px;padding:0 17px;gap:8px}.floating-whatsapp span{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.floating-whatsapp{transition:none}}
