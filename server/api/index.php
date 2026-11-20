@@ -564,7 +564,7 @@ try {
     if ($path === '/admin/settings' && $method === 'PATCH') {
         requireCsrf(); requireRole($admin, ['owner','administrator']);
         $input=body();
-        $allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','maintenance'];
+        $allowedSettings = ['site_name','contact_email','contact_phone','whatsapp_url','whatsapp_message','instagram_url','facebook_url','youtube_url','linkedin_url','contact_address','footer_text','seo_title','seo_description','body_text_size','maintenance'];
         foreach ($input as $key=>$value) {
             if (!in_array($key,$allowedSettings,true)) respond(422,['error'=>'invalid_setting_key']);
             if ($key === 'maintenance' && !is_bool($value)) respond(422,['error'=>'invalid_setting_value','field'=>$key]);
