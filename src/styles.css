@@ -276,3 +276,18 @@ body{font-size:12px}
 
 /* Legibilidade: Arial e tamanho mínimo de 12px em todos os textos pequenos. */
 :root, body, button, input, textarea, select { font-family: Arial, Helvetica, sans-serif !important; }
+
+
+/* Revisão de hierarquia visual solicitada — FIXXAR GROUP */
+.hero-art-core{width:min(76%,520px);aspect-ratio:1;border-radius:50%;padding:12%;font-size:0;letter-spacing:0}
+.hero-brand-logo{display:block;width:100%;height:auto;max-height:160px;object-fit:contain;filter:drop-shadow(0 8px 24px #0008)}
+.hero-art-label{display:none!important}
+.manifesto .section-kicker{font-size:14px}
+.manifesto-text p{font-size:max(14px,var(--body-copy-size,14px));line-height:1.85}
+.manifesto-text .lead{font-size:max(21px,calc(var(--body-copy-size,14px) + 7px));font-weight:600;line-height:1.5;color:#171717}
+.universe-highlight{max-width:480px;padding:24px 26px;border-left:3px solid var(--orange);background:#ffffff0d;color:#f2f0ec!important;font-size:max(18px,calc(var(--body-copy-size,14px) + 4px))!important;line-height:1.65!important;font-weight:600}
+.process-intro>p{font-size:max(16px,var(--body-copy-size,14px));line-height:1.85}
+.hero-copy,.manifesto-text p,.section-heading>p,.process-intro>p,.card-description,.process-track article p,.pillar p,.closing>p:not(.eyebrow){font-size:max(14px,var(--body-copy-size,14px))!important}
+.card-description,.process-track article p,.pillar p{line-height:1.8}
+.hero-brand-logo{min-width:220px}
+@media(max-width:700px){.hero-brand-logo{min-width:150px}.universe-highlight{font-size:16px!important;padding:18px}.manifesto .section-kicker{font-size:12px}}
