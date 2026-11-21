@@ -1,8 +1,6 @@
 name: Publicar FIXXAR GROUP na DreamHost
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
