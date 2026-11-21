@@ -50,16 +50,19 @@ jobs:
           test -f deploy/index.html
           test -f deploy/.htaccess
 
-      - name: Publicar por SFTP/SSH na DreamHost
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.DREAMHOST_FTP_SERVER }}
-          username: ${{ secrets.DREAMHOST_FTP_USERNAME }}
-          password: ${{ secrets.DREAMHOST_FTP_PASSWORD }}
-          port: 22
-          source: "deploy/*"
-          target: ${{ secrets.DREAMHOST_FTP_SERVER_DIR }}
-          overwrite: true
-          rm: false
-          timeout: 60s
-          command_timeout: 15m
+      - name: Instalar cliente SFTP
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Publicar por SFTP na DreamHost
+        env:
+          DREAMHOST_FTP_SERVER: ${{ secrets.DREAMHOST_FTP_SERVER }}
+          DREAMHOST_FTP_USERNAME: ${{ secrets.DREAMHOST_FTP_USERNAME }}
+          DREAMHOST_FTP_PASSWORD: ${{ secrets.DREAMHOST_FTP_PASSWORD }}
+          DREAMHOST_FTP_SERVER_DIR: ${{ secrets.DREAMHOST_FTP_SERVER_DIR }}
+        run: |
+          lftp -u "$DREAMHOST_FTP_USERNAME","$DREAMHOST_FTP_PASSWORD" "sftp://$DREAMHOST_FTP_SERVER:22" -e "
+            set sftp:auto-confirm yes;
+            set net:timeout 30;
+            mirror --reverse --verbose --no-perms --exclude-glob server/config.php ./deploy/ $DREAMHOST_FTP_SERVER_DIR/;
+            bye
+          "
