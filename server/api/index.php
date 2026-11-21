@@ -141,6 +141,8 @@ try {
         $pdo->prepare('UPDATE admin_users SET last_login_at=NOW() WHERE id=?')->execute([(int)$user['id']]);
         audit($pdo, $user, 'auth.login', 'admin_user', (string)$user['id']);
         unset($user['password_hash']);
+        // Persist the authenticated session before returning the login response.
+        session_write_close();
         respond(200, ['user'=>$user,'csrfToken'=>$_SESSION['csrf_token']]);
     }
 
