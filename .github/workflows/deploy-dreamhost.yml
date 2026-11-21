@@ -51,7 +51,7 @@ jobs:
           test -f deploy/index.html
           test -f deploy/.htaccess
 
-      -  name: Publicar por SFTP/SSH na DreamHost
+      - name: Publicar por SFTP/SSH na DreamHost
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.DREAMHOST_FTP_SERVER }}
