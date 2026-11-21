@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Preparar PHP para validar a API
         uses: shivammathur/setup-php@v2
@@ -34,7 +33,7 @@ jobs:
         run: find server -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 
       - name: Instalar dependências
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Executar verificações do projeto
         run: npm run verify
