@@ -1,0 +1,72 @@
+name: Publicar FIXXAR GROUP na DreamHost
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dreamhost-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Preparar PHP para validar a API
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Validar sintaxe PHP
+        run: find server -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Executar verificações do projeto
+        run: npm run verify
+
+      - name: Gerar versão de produção
+        run: npm run build
+
+      - name: Montar arquivos para publicação
+        run: |
+          mkdir -p deploy/server
+          cp -a dist/. deploy/
+          cp -a server/. deploy/server/
+          rm -f deploy/server/config.php
+          test -f deploy/index.html
+          test -f deploy/.htaccess
+
+      - name: Publicar por FTPS na DreamHost
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.DREAMHOST_FTP_SERVER }}
+          username: ${{ secrets.DREAMHOST_FTP_USERNAME }}
+          password: ${{ secrets.DREAMHOST_FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./deploy/
+          server-dir: ${{ secrets.DREAMHOST_FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            server/config.php
+            **/server/config.php
