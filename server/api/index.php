@@ -318,6 +318,8 @@ try {
         $totalMediaBytes = 0;
         try {
             audit($pdo, $admin, 'backup.complete', 'system', gmdate('Y-m-d'));
+            $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+            $pdo->beginTransaction();
             fwrite($sql, "-- FIXXAR GROUP complete database backup\n-- Generated: " . gmdate('c') . "\n-- Import into an empty database; review before restoring over existing data.\nSET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n\n");
             $tableRows = $pdo->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM);
             foreach ($tableRows as $tableInfo) {
@@ -351,6 +353,7 @@ try {
                 $tableCount++;
             }
             fwrite($sql, "SET FOREIGN_KEY_CHECKS=1;\n");
+            $pdo->commit();
             fclose($sql);
             $sql = null;
             if (!$zip->addFile($sqlPath, 'database/fixxar-group.sql')) throw new RuntimeException('Unable to add database dump.');
@@ -388,6 +391,7 @@ try {
             if (!$zip->close()) throw new RuntimeException('Unable to finalize backup archive.');
             if (!is_file($zipPath) || filesize($zipPath) < 100) throw new RuntimeException('Backup archive is incomplete.');
         } catch (Throwable $backupError) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
             if (is_resource($sql)) fclose($sql);
             $zip->close();
             @unlink($sqlPath);
