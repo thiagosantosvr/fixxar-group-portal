@@ -1,0 +1,74 @@
+name: Gerar ZIP FIXXAR GROUP para DreamHost
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Preparar PHP para validar a API
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Validar sintaxe PHP
+        run: find server -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+
+      - name: Verificar projeto
+        run: npm run verify
+
+      - name: Gerar site de produção
+        run: npm run build
+
+      - name: Montar pacote pronto para a raiz do domínio
+        run: |
+          rm -rf deploy
+          mkdir -p deploy/server
+          cp -a dist/. deploy/
+          cp -a server/. deploy/server/
+          rm -f deploy/server/config.php
+          cat > deploy/LEIA-ANTES-DE-ENVIAR.txt <<'EOF'
+          FIXXAR GROUP — PACOTE DE PUBLICAÇÃO DREAMHOST
+
+          DESTINO: raiz do domínio fixxarestudios.com.br
+          Envie o CONTEÚDO desta pasta/ZIP para a raiz do domínio, mantendo a estrutura.
+          Não envie a pasta deploy como uma pasta dentro do domínio.
+
+          IMPORTANTE:
+          - NÃO apague nem substitua server/config.php que já existe no servidor.
+          - Este ZIP não contém server/config.php por segurança.
+          - Não envie arquivos para dentro de public_html se a raiz configurada no DreamHost for outra.
+          - Mantenha .htaccess na raiz e a pasta server completa.
+          - Após o envio, teste /api/health e /painel.
+          EOF
+          test -f deploy/index.html
+          test -f deploy/.htaccess
+          test -f deploy/server/api/index.php
+          test ! -f deploy/server/config.php
+          cd deploy
+          zip -qr ../FIXXAR-GROUP-DreamHost.zip .
+
+      - name: Disponibilizar ZIP para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: FIXXAR-GROUP-DreamHost
+          path: FIXXAR-GROUP-DreamHost.zip
+          if-no-files-found: error
+          retention-days: 7
