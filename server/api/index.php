@@ -366,7 +366,15 @@ try {
                 if (!$file->isFile() || $file->isLink()) continue;
                 $absolute = $file->getPathname();
                 $relative = ltrim(str_replace(DIRECTORY_SEPARATOR, '/', substr($absolute, strlen($root))), '/');
-                if ($relative === '' || $relative === 'server/config.php' || $relative === 'server/instalar-admin.php') continue;
+                if ($relative === '' || in_array($relative, [
+                    'server/config.php',
+                    'server/instalar-admin.php',
+                    'server/diagnostico.php',
+                    'server/teste-php.php',
+                    'server/acesso-inicial.php',
+                    'server/api/index_antigo.php',
+                    'server/storage/owner-setup.lock',
+                ], true)) continue;
                 $parts = explode('/', $relative);
                 if (in_array('.git', $parts, true) || in_array('node_modules', $parts, true) || in_array('vendor', $parts, true)) continue;
                 if (str_starts_with($relative, 'server/storage/backups/') || str_starts_with($relative, 'server/storage/tmp/')) continue;
@@ -383,7 +391,7 @@ try {
                 'database' => ['tables' => $tableCount, 'rows' => $rowCount, 'dump' => 'database/fixxar-group.sql'],
                 'site_files' => $fileCount,
                 'media_bytes' => $totalMediaBytes,
-                'excluded' => ['server/config.php (credentials and secrets)', 'server/instalar-admin.php (one-time installer)', 'sessions, temporary files, logs, caches and prior backup archives'],
+                'excluded' => ['server/config.php (credentials and secrets)', 'server/instalar-admin.php (one-time installer)', 'server/diagnostico.php and server/teste-php.php (diagnostic scripts)', 'server/acesso-inicial.php (initial owner setup)', 'server/api/index_antigo.php (legacy API)', 'server/storage/owner-setup.lock (one-time setup marker)', 'sessions, temporary files, logs, caches and prior backup archives'],
                 'restore_note' => 'Restore into a separate empty database first. Reconfigure server/config.php manually from a secure copy; never overwrite production before validating the restored site.'
             ];
             $zip->addFromString('BACKUP-MANIFEST.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
