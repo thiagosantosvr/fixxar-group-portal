@@ -61,6 +61,32 @@ export async function uploadAdminMedia(file: File) {
 }
 export async function deleteAdminMedia(id: number) { return request(`/admin/media/${id}`, "DELETE"); }
 
+export async function downloadCompleteBackup() {
+  const headers: Record<string,string> = { Accept: "application/zip, application/json" };
+  if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+  const response = await fetch("/api/admin/backup", { method: "POST", headers, credentials: "same-origin" });
+  if (!response.ok) {
+    const result = await response.json().catch(() => ({}));
+    const error = new Error(result.message || result.error || `HTTP ${response.status}`);
+    Object.assign(error, { status: response.status, code: result.error });
+    throw error;
+  }
+  const blob = await response.blob();
+  if (!blob.size || blob.type !== "application/zip") throw new Error("invalid_backup_archive");
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const match = disposition.match(/filename="([^"]+)"/i);
+  const filename = match?.[1] || "FIXXAR-GROUP-BACKUP.zip";
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+  return { filename, size: blob.size };
+}
+
 export type ManagedAdminUser = { id:number; name:string; email:string; role:"owner"|"administrator"|"editor"|"support"; is_active:number; last_login_at:string|null; created_at?:string };
 export const loadAdminUsers = async () => (await request<{users:ManagedAdminUser[]}>("/admin/users")).users;
 export const createAdminUser = (data:{name:string;email:string;password:string;role:string}) => request<{ok:boolean;user:ManagedAdminUser}>("/admin/users","POST",data);
