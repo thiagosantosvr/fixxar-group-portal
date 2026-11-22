@@ -169,8 +169,19 @@ export default function Admin() {
       setUser(verifiedSession.user);
       setMode("ready");
       setPassword("");
-    } catch {
-      setError("E-mail ou senha inválidos, ou serviço indisponível.");
+    } catch (reason: unknown) {
+      const failure = reason as { code?: string; status?: number; message?: string };
+      if (failure.code === "login_temporarily_blocked" || failure.status === 429) {
+        setError("Acesso temporariamente bloqueado por segurança. Aguarde 15 minutos antes de tentar novamente.");
+      } else if (failure.code === "invalid_credentials" || failure.status === 401 || failure.status === 422) {
+        setError("O servidor não reconheceu o e-mail e a senha informados. Sua conta não foi alterada.");
+      } else if (failure.code === "internal_server_error" || failure.status === 500) {
+        setError("O servidor encontrou uma falha interna ao validar o acesso. O problema não confirma erro na sua senha.");
+      } else if (failure.message === "A sessão não foi confirmada pelo servidor.") {
+        setError("A senha foi aceita, mas o servidor não confirmou a sessão administrativa. A autenticação ainda precisa de correção.");
+      } else {
+        setError("Não foi possível concluir o acesso. Verificaremos a resposta técnica do servidor.");
+      }
     } finally {
       setBusy(false);
     }
