@@ -289,6 +289,128 @@ try {
 
     $admin = requireAdmin($pdo);
 
+    if ($path === '/admin/backup' && $method === 'POST') {
+        requireCsrf();
+        requireRole($admin, ['owner']);
+        if (!class_exists('ZipArchive')) respond(503, ['error'=>'backup_zip_unavailable']);
+        @set_time_limit(300);
+        ignore_user_abort(true);
+
+        $root = dirname(__DIR__, 2);
+        $temporaryBase = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'fixxar-backup-' . bin2hex(random_bytes(12));
+        $zipPath = $temporaryBase . '.zip';
+        $sqlPath = $temporaryBase . '.sql';
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            respond(500, ['error'=>'backup_archive_unavailable']);
+        }
+
+        $sql = @fopen($sqlPath, 'wb');
+        if ($sql === false) {
+            $zip->close();
+            @unlink($zipPath);
+            respond(500, ['error'=>'backup_storage_unavailable']);
+        }
+
+        $tableCount = 0;
+        $rowCount = 0;
+        $fileCount = 0;
+        $totalMediaBytes = 0;
+        try {
+            audit($pdo, $admin, 'backup.complete', 'system', gmdate('Y-m-d'));
+            fwrite($sql, "-- FIXXAR GROUP complete database backup\n-- Generated: " . gmdate('c') . "\n-- Import into an empty database; review before restoring over existing data.\nSET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n\n");
+            $tableRows = $pdo->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM);
+            foreach ($tableRows as $tableInfo) {
+                $tableName = (string)($tableInfo[0] ?? '');
+                $tableType = (string)($tableInfo[1] ?? '');
+                if ($tableName === '' || $tableType !== 'BASE TABLE') continue;
+                $qmark = chr(96);
+                $quotedTable = $qmark . str_replace($qmark, $qmark . $qmark, $tableName) . $qmark;
+                $create = $pdo->query('SHOW CREATE TABLE ' . $quotedTable)->fetch(PDO::FETCH_NUM);
+                if (!$create || !isset($create[1])) throw new RuntimeException('Unable to read table definition.');
+                fwrite($sql, "-- Table: " . $tableName . "\n" . $create[1] . ";\n");
+                $statement = $pdo->query('SELECT * FROM ' . $quotedTable);
+                while ($row = $statement->fetch(PDO::FETCH_NUM)) {
+                    $values = [];
+                    foreach ($row as $value) {
+                        if ($value === null) { $values[] = 'NULL'; continue; }
+                        if (is_int($value) || is_float($value)) { $values[] = (string)$value; continue; }
+                        $value = (string)$value;
+                        if (preg_match('//u', $value) !== 1) {
+                            $values[] = '0x' . bin2hex($value);
+                        } else {
+                            $quoted = $pdo->quote($value);
+                            if ($quoted === false) throw new RuntimeException('Unable to encode a database value.');
+                            $values[] = $quoted;
+                        }
+                    }
+                    fwrite($sql, 'INSERT INTO ' . $quotedTable . ' VALUES (' . implode(',', $values) . ");\n");
+                    $rowCount++;
+                }
+                fwrite($sql, "\n");
+                $tableCount++;
+            }
+            fwrite($sql, "SET FOREIGN_KEY_CHECKS=1;\n");
+            fclose($sql);
+            $sql = null;
+            if (!$zip->addFile($sqlPath, 'database/fixxar-group.sql')) throw new RuntimeException('Unable to add database dump.');
+
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::LEAVES_ONLY
+            );
+            foreach ($iterator as $file) {
+                if (!$file->isFile() || $file->isLink()) continue;
+                $absolute = $file->getPathname();
+                $relative = ltrim(str_replace(DIRECTORY_SEPARATOR, '/', substr($absolute, strlen($root))), '/');
+                if ($relative === '' || $relative === 'server/config.php' || $relative === 'server/instalar-admin.php') continue;
+                $parts = explode('/', $relative);
+                if (in_array('.git', $parts, true) || in_array('node_modules', $parts, true) || in_array('vendor', $parts, true)) continue;
+                if (str_starts_with($relative, 'server/storage/backups/') || str_starts_with($relative, 'server/storage/tmp/')) continue;
+                if (preg_match('/(^|\/)(?:\.env(?:\..*)?|.*\.log|.*\.zip)$/i', $relative)) continue;
+                if (!$zip->addFile($absolute, 'site/' . $relative)) throw new RuntimeException('Unable to add a site file to backup.');
+                $fileCount++;
+                if (str_starts_with($relative, 'server/storage/media/')) $totalMediaBytes += (int)$file->getSize();
+            }
+
+            $manifest = [
+                'format' => 'fixxar-group-complete-backup',
+                'schema_version' => 1,
+                'created_at' => gmdate('c'),
+                'database' => ['tables' => $tableCount, 'rows' => $rowCount, 'dump' => 'database/fixxar-group.sql'],
+                'site_files' => $fileCount,
+                'media_bytes' => $totalMediaBytes,
+                'excluded' => ['server/config.php (credentials and secrets)', 'server/instalar-admin.php (one-time installer)', 'sessions, temporary files, logs, caches and prior backup archives'],
+                'restore_note' => 'Restore into a separate empty database first. Reconfigure server/config.php manually from a secure copy; never overwrite production before validating the restored site.'
+            ];
+            $zip->addFromString('BACKUP-MANIFEST.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $zip->addFromString('RESTORE-README.txt', "FIXXAR GROUP — BACKUP COMPLETO\n\nConteúdo: dump SQL de todas as tabelas, arquivos do portal e biblioteca de mídia.\n\nIMPORTANTE: server/config.php não está incluído porque contém credenciais e segredos. Guarde uma cópia segura separadamente.\n\nRestauração: crie um banco vazio, importe database/fixxar-group.sql pelo phpMyAdmin, restaure os arquivos da pasta site/ e configure server/config.php com as credenciais corretas. Faça a restauração primeiro em homologação; não importe diretamente sobre produção.\n");
+            if (!$zip->close()) throw new RuntimeException('Unable to finalize backup archive.');
+            if (!is_file($zipPath) || filesize($zipPath) < 100) throw new RuntimeException('Backup archive is incomplete.');
+        } catch (Throwable $backupError) {
+            if (is_resource($sql)) fclose($sql);
+            $zip->close();
+            @unlink($sqlPath);
+            @unlink($zipPath);
+            error_log('[FIXXAR BACKUP] ' . $backupError->getMessage());
+            respond(500, ['error'=>'backup_generation_failed']);
+        }
+
+        $filename = 'FIXXAR-GROUP-BACKUP-' . gmdate('Ymd-His') . '.zip';
+        $size = filesize($zipPath);
+        session_write_close();
+        while (ob_get_level() > 0) ob_end_clean();
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . (string)$size);
+        header('Cache-Control: no-store, private');
+        header('X-Content-Type-Options: nosniff');
+        readfile($zipPath);
+        @unlink($sqlPath);
+        @unlink($zipPath);
+        exit;
+    }
+
     if ($path === '/admin/users' && $method === 'GET') {
         requireRole($admin, ['owner']);
         $users = $pdo->query('SELECT id,name,email,role,is_active,last_login_at,created_at FROM admin_users ORDER BY name,id')->fetchAll();
