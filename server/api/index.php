@@ -88,8 +88,14 @@ ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
 ini_set('session.use_trans_sid', '0');
 session_name((string)($config['session_name'] ?? 'fixxar_admin'));
-session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>$secure,'httponly'=>true,'samesite'=>'Strict']);
-session_start();
+session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>$secure,'httponly'=>true,'samesite'=>'Lax']);
+$sessionStartWarning = false;
+set_error_handler(static function (int $severity) use (&$sessionStartWarning): bool {
+    $sessionStartWarning = true;
+    return true;
+});
+$sessionStarted = session_start();
+restore_error_handler();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
@@ -156,6 +162,10 @@ try {
                 'diagnostics' => [
                     'session_cookie_received' => isset($_COOKIE[session_name()]),
                     'session_started' => session_status() === PHP_SESSION_ACTIVE,
+                    'session_start_succeeded' => $sessionStarted,
+                    'session_start_warning' => $sessionStartWarning,
+                    'headers_already_sent' => headers_sent(),
+                    'session_name_configured' => session_name() !== '',
                     'admin_session_present' => !empty($_SESSION['admin_id']),
                     'session_storage_path_configured' => $savePath !== '',
                     'session_storage_writable' => $savePath !== '' ? is_writable($savePath) : null,
