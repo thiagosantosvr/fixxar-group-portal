@@ -4,6 +4,8 @@ const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const app = readFileSync("src/App.tsx", "utf8");
 const data = readFileSync("src/data.ts", "utf8");
 const admin = readFileSync("src/Admin.tsx", "utf8");
+const adminApi = readFileSync("src/adminApi.ts", "utf8");
+const api = readFileSync("server/api/index.php", "utf8");
 
 const bootstrapChecks = [
   ["estado de carregamento explícito do bootstrap", /bootstrapState,setBootstrapState/.test(admin)],
@@ -59,8 +61,12 @@ const requirements = [
   ["links ativos em HTTPS", activeEntries.length === 2 && activeEntries.every((entry) => /\burl:\s*"https:\/\//.test(entry))],
   ["backup inclui páginas institucionais", admin.includes("institutionalPages,")],
   ["backup inclui índice de mídia", admin.includes("mediaIndex:mediaAssets.map")],
-  ["backup documenta exclusão de binários e credenciais", admin.includes("não os arquivos binários das imagens") && admin.includes("hashes de senha e tokens de sessão não são exportados")],
-  ["backup identifica versão do formato", admin.includes("schemaVersion:2") && admin.includes('format:"fixxar-group-backup"')],
+  ["backup completo é acionado somente para owner no painel", admin.includes('user?.role!=="owner"') && admin.includes('live?"Backup completo (.ZIP)"')],
+  ["cliente baixa ZIP autenticado com CSRF", adminApi.includes("downloadCompleteBackup") && adminApi.includes('X-CSRF-Token') && adminApi.includes('response.blob()')],
+  ["API protege backup com owner e CSRF", api.includes("if ($path === '/admin/backup' && $method === 'POST')") && api.includes("requireRole($admin, ['owner']);") && api.includes("requireCsrf();")],
+  ["backup inclui dump SQL e tabelas", api.includes("SHOW FULL TABLES") && api.includes("SHOW CREATE TABLE") && api.includes("database/fixxar-group.sql")],
+  ["backup inclui arquivos do site e mídia", api.includes("RecursiveDirectoryIterator") && api.includes("server/storage/media/")],
+  ["backup exclui configuração e instalador", api.includes("server/config.php") && api.includes("server/instalar-admin.php") && api.includes("BACKUP-MANIFEST.json")],
   ["universos em desenvolvimento sem URL publicada", developmentEntries.length === 5 && developmentEntries.every((entry) => !/\burl:/.test(entry))]
 ];
 
