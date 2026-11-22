@@ -37,7 +37,7 @@ const checks = [
   ["interface do suporte abre diretamente na caixa de entrada", adminUi.includes('useState<Section>(live&&user?.role==="support"?"messages":"overview")')],
   ["interface do suporte oculta seções fora da sua função", adminUi.includes('user?.role!=="support"||item.id==="messages"')],
   ["consulta de contas administrativas exclusiva do proprietário", api.includes("requireRole($admin, ['owner']);") && api.includes("if ($path === '/admin/users' && $method === 'GET')")],
-  ["exportação de backup indisponível para suporte", adminUi.includes('(!live||user?.role!=="support")&&<button className="admin-primary" onClick={exportBackup}')],
+  ["backup completo restrito ao proprietário no painel", adminUi.includes('(!live||user?.role==="owner")&&<button className="admin-primary"')],
   ["caixa de demonstração sem contatos fictícios", adminUi.includes("const initialMessages: Message[] = [];")],
   ["indicador de páginas calculado pelo CMS", adminUi.includes("String(institutionalPages.length+1)")]
 ];
