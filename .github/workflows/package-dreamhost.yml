@@ -43,6 +43,7 @@ jobs:
           mkdir -p deploy/server
           cp -a dist/. deploy/
           cp -a server/. deploy/server/
+          rm -f deploy/server/instalar-admin.php
           rm -f deploy/server/config.php
           cat > deploy/LEIA-ANTES-DE-ENVIAR.txt <<'EOF'
           FIXXAR GROUP — PACOTE DE PUBLICAÇÃO DREAMHOST
