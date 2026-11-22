@@ -37,6 +37,7 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | GET | /api/public/content | Público | Entrega apenas página inicial publicada e universos não arquivados |
 | GET | /api/media/{storage_name} | Público | Entrega imagem cadastrada após consulta ao banco |
 | GET | /api/admin/audit-log | Owner | Consulta histórico de ações administrativas |
+| POST | /api/admin/backup | Owner + CSRF | Gera ZIP temporário com dump SQL de todas as tabelas, arquivos do portal e biblioteca de mídia; exclui credenciais e instalador |
 | GET | /api/admin/bootstrap | Admin | Carrega páginas, marcas, mensagens, configurações e biblioteca de mídia |
 | GET | /api/admin/users | Owner | Lista contas administrativas |
 | POST | /api/admin/users | Owner + CSRF | Cria conta com senha Argon2id |
@@ -50,6 +51,13 @@ Não envie `config.php`, senhas, dumps de produção ou credenciais para o repos
 | PATCH | /api/admin/settings | Owner/Admin + CSRF | Atualiza configurações |
 | POST | /api/admin/media | Editor + CSRF | Envia imagem JPG, PNG ou WebP de até 10 MB |
 | DELETE | /api/admin/media/{id} | Owner/Admin + CSRF | Remove arquivo da biblioteca e do armazenamento |
+
+
+## Backup completo pelo painel
+
+O botão **Backup completo (.ZIP)** está disponível para a conta proprietária. Ele chama `POST /api/admin/backup`, protegido por sessão, papel `owner` e token CSRF. O servidor gera um arquivo temporário fora da raiz pública com: dump SQL de todas as tabelas base e registros, arquivos do portal (exceto segredos/instalador/cache/logs/arquivos temporários) e conteúdo de `server/storage/media`. O ZIP contém `BACKUP-MANIFEST.json` e instruções de restauração. O dump deve ser importado primeiro em um banco vazio de homologação.
+
+**Segredos excluídos:** `server/config.php`, `server/instalar-admin.php`, sessões, tokens, logs e arquivos de backup anteriores. Guarde `server/config.php` separadamente em local seguro. O endpoint requer a extensão PHP `ZipArchive`, permissão de escrita no diretório temporário do PHP e espaço suficiente para o ZIP e o dump SQL. Após a transmissão, os temporários são apagados. Este recurso gera backup sob demanda; não substitui cópias externas periódicas nem garante backup de arquivos externos ao document root.
 
 ## Segurança aplicada
 
