@@ -160,8 +160,13 @@ export default function Admin() {
     setBusy(true);
     setError("");
     try {
-      const signedIn = await loginAdmin(email, password);
-      setUser(signedIn);
+      await loginAdmin(email, password);
+      // Do not trust the login response alone: confirm the cookie-backed session on the server.
+      const verifiedSession = await getAdminSession();
+      if (!verifiedSession.authenticated || !verifiedSession.user) {
+        throw new Error("A sessão não foi confirmada pelo servidor.");
+      }
+      setUser(verifiedSession.user);
       setMode("ready");
       setPassword("");
     } catch {
