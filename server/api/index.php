@@ -148,7 +148,20 @@ try {
 
     if ($path === '/auth/session' && $method === 'GET') {
         $admin = currentAdmin($pdo);
-        if (!$admin) respond(200, ['authenticated'=>false]);
+        if (!$admin) {
+            // Safe diagnostics: expose only booleans, never cookie values, session IDs or user identifiers.
+            $savePath = (string)ini_get('session.save_path');
+            respond(200, [
+                'authenticated' => false,
+                'diagnostics' => [
+                    'session_cookie_received' => isset($_COOKIE[session_name()]),
+                    'session_started' => session_status() === PHP_SESSION_ACTIVE,
+                    'admin_session_present' => !empty($_SESSION['admin_id']),
+                    'session_storage_path_configured' => $savePath !== '',
+                    'session_storage_writable' => $savePath !== '' ? is_writable($savePath) : null,
+                ],
+            ]);
+        }
         if (empty($_SESSION['csrf_token'])) $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         respond(200, ['authenticated'=>true,'user'=>$admin,'csrfToken'=>$_SESSION['csrf_token']]);
     }
