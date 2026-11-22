@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+// Buffer accidental output from included configuration files before HTTP headers/session startup.
+ob_start();
+
 /**
  * FIXXAR GROUP API — PHP 8.1+, PDO MySQL.
  * Configure server/config.php from config.example.php before enabling.
@@ -13,6 +16,8 @@ if (!is_file($configPath)) {
     exit;
 }
 $config = require $configPath;
+// Configuration files must not emit bytes before session_start(); discard any incidental output.
+if (ob_get_level() > 0) { ob_clean(); }
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store, private');
