@@ -40,6 +40,7 @@ jobs:
           mkdir -p release/fixxar-group-portal
           cp -a dist/. release/fixxar-group-portal/
           cp -a server release/fixxar-group-portal/server
+          rm -f release/fixxar-group-portal/server/instalar-admin.php
           cp DEPLOY-DREAMHOST.md release/fixxar-group-portal/LEIA-ANTES-DE-INSTALAR.md
           cp server/README.md release/fixxar-group-portal/LEIA-SOBRE-PAINEL-E-API.md
           cat > release/fixxar-group-portal/LEIA-ME.txt <<'EOF'
