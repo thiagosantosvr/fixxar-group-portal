@@ -83,6 +83,19 @@ function audit(PDO $pdo, array $admin, string $action, string $type, ?string $id
     $q = $pdo->prepare('INSERT INTO admin_audit_log (admin_user_id,action,entity_type,entity_id,ip_hash) VALUES (?,?,?,?,?)');
     $q->execute([(int)$admin['id'], $action, $type, $id, $hash]);
 }
+function writeAll($stream, string $content): void {
+    if (!is_resource($stream)) throw new RuntimeException('Database backup stream is unavailable.');
+    $length = strlen($content);
+    $offset = 0;
+    while ($offset < $length) {
+        $written = fwrite($stream, substr($content, $offset));
+        if ($written === false || $written === 0) {
+            throw new RuntimeException('Unable to complete database backup write.');
+        }
+        $offset += $written;
+    }
+}
+
 function jsonColumn(array $row, string $key): array {
     $decoded = json_decode((string)($row[$key] ?? ''), true);
     return is_array($decoded) ? $decoded : [];
@@ -320,7 +333,7 @@ try {
             audit($pdo, $admin, 'backup.complete', 'system', gmdate('Y-m-d'));
             $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
             $pdo->beginTransaction();
-            fwrite($sql, "-- FIXXAR GROUP complete database backup\n-- Generated: " . gmdate('c') . "\n-- Import into an empty database; review before restoring over existing data.\nSET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n\n");
+            writeAll($sql, "-- FIXXAR GROUP complete database backup\n-- Generated: " . gmdate('c') . "\n-- Import into an empty database; review before restoring over existing data.\nSET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n\n");
             $tableRows = $pdo->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM);
             foreach ($tableRows as $tableInfo) {
                 $tableName = (string)($tableInfo[0] ?? '');
@@ -330,7 +343,7 @@ try {
                 $quotedTable = $qmark . str_replace($qmark, $qmark . $qmark, $tableName) . $qmark;
                 $create = $pdo->query('SHOW CREATE TABLE ' . $quotedTable)->fetch(PDO::FETCH_NUM);
                 if (!$create || !isset($create[1])) throw new RuntimeException('Unable to read table definition.');
-                fwrite($sql, "-- Table: " . $tableName . "\n" . $create[1] . ";\n");
+                writeAll($sql, "-- Table: " . $tableName . "\n" . $create[1] . ";\n");
                 $statement = $pdo->query('SELECT * FROM ' . $quotedTable);
                 while ($row = $statement->fetch(PDO::FETCH_NUM)) {
                     $values = [];
@@ -346,15 +359,15 @@ try {
                             $values[] = $quoted;
                         }
                     }
-                    fwrite($sql, 'INSERT INTO ' . $quotedTable . ' VALUES (' . implode(',', $values) . ");\n");
+                    writeAll($sql, 'INSERT INTO ' . $quotedTable . ' VALUES (' . implode(',', $values) . ");\n");
                     $rowCount++;
                 }
-                fwrite($sql, "\n");
+                writeAll($sql, "\n");
                 $tableCount++;
             }
-            fwrite($sql, "SET FOREIGN_KEY_CHECKS=1;\n");
+            writeAll($sql, "SET FOREIGN_KEY_CHECKS=1;\n");
             $pdo->commit();
-            fclose($sql);
+            if (!fclose($sql)) throw new RuntimeException('Unable to close database dump.');
             $sql = null;
             if (!$zip->addFile($sqlPath, 'database/fixxar-group.sql')) throw new RuntimeException('Unable to add database dump.');
 
@@ -384,20 +397,74 @@ try {
                 if (str_starts_with($relative, 'server/storage/media/')) $totalMediaBytes += (int)$file->getSize();
             }
 
+            $dumpBytes = filesize($sqlPath);
+            $dumpSha256 = hash_file('sha256', $sqlPath);
+            if ($dumpBytes === false || $dumpSha256 === false) {
+                throw new RuntimeException('Unable to calculate database dump integrity metadata.');
+            }
+
             $manifest = [
                 'format' => 'fixxar-group-complete-backup',
                 'schema_version' => 1,
                 'created_at' => gmdate('c'),
-                'database' => ['tables' => $tableCount, 'rows' => $rowCount, 'dump' => 'database/fixxar-group.sql'],
+                'database' => ['tables' => $tableCount, 'rows' => $rowCount, 'dump' => 'database/fixxar-group.sql', 'bytes' => $dumpBytes, 'sha256' => $dumpSha256],
                 'site_files' => $fileCount,
                 'media_bytes' => $totalMediaBytes,
                 'excluded' => ['server/config.php (credentials and secrets)', 'server/instalar-admin.php (one-time installer)', 'server/diagnostico.php and server/teste-php.php (diagnostic scripts)', 'server/acesso-inicial.php (initial owner setup)', 'server/api/index_antigo.php (legacy API)', 'server/storage/owner-setup.lock (one-time setup marker)', 'sessions, temporary files, logs, caches and prior backup archives'],
                 'restore_note' => 'Restore into a separate empty database first. Reconfigure server/config.php manually from a secure copy; never overwrite production before validating the restored site.'
             ];
-            $zip->addFromString('BACKUP-MANIFEST.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            $zip->addFromString('RESTORE-README.txt', "FIXXAR GROUP — BACKUP COMPLETO\n\nConteúdo: dump SQL de todas as tabelas, arquivos do portal e biblioteca de mídia.\n\nIMPORTANTE: server/config.php não está incluído porque contém credenciais e segredos. Guarde uma cópia segura separadamente.\n\nRestauração: crie um banco vazio, importe database/fixxar-group.sql pelo phpMyAdmin, restaure os arquivos da pasta site/ e configure server/config.php com as credenciais corretas. Faça a restauração primeiro em homologação; não importe diretamente sobre produção.\n");
+            $manifestJson = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (!is_string($manifestJson) || !$zip->addFromString('BACKUP-MANIFEST.json', $manifestJson)) {
+                throw new RuntimeException('Unable to add backup manifest.');
+            }
+            $restoreReadme = "FIXXAR GROUP — BACKUP COMPLETO\n\nConteúdo: dump SQL de todas as tabelas, arquivos do portal e biblioteca de mídia.\n\nIntegridade: BACKUP-MANIFEST.json informa o tamanho e o SHA-256 do dump SQL; o servidor confere esses dados dentro do ZIP antes de liberar o download.\n\nIMPORTANTE: server/config.php não está incluído porque contém credenciais e segredos. Guarde uma cópia segura separadamente.\n\nRestauração: crie um banco vazio, importe database/fixxar-group.sql pelo phpMyAdmin, restaure os arquivos da pasta site/ e configure server/config.php com as credenciais corretas. Faça a restauração primeiro em homologação; não importe diretamente sobre produção.\n";
+            if (!$zip->addFromString('RESTORE-README.txt', $restoreReadme)) {
+                throw new RuntimeException('Unable to add restore instructions.');
+            }
             if (!$zip->close()) throw new RuntimeException('Unable to finalize backup archive.');
             if (!is_file($zipPath) || filesize($zipPath) < 100) throw new RuntimeException('Backup archive is incomplete.');
+
+            $verification = new ZipArchive();
+            if ($verification->open($zipPath, ZipArchive::CHECKCONS) !== true) {
+                throw new RuntimeException('Backup archive consistency check failed.');
+            }
+            try {
+                $dumpEntry = $verification->statName('database/fixxar-group.sql');
+                if (!is_array($dumpEntry) || (int)($dumpEntry['size'] ?? -1) !== (int)$dumpBytes) {
+                    throw new RuntimeException('Database dump size does not match the manifest.');
+                }
+
+                $manifestFromZip = $verification->getFromName('BACKUP-MANIFEST.json');
+                $verifiedManifest = is_string($manifestFromZip) ? json_decode($manifestFromZip, true) : null;
+                if (!is_array($verifiedManifest) ||
+                    (int)($verifiedManifest['database']['bytes'] ?? -1) !== (int)$dumpBytes ||
+                    !hash_equals($dumpSha256, (string)($verifiedManifest['database']['sha256'] ?? ''))) {
+                    throw new RuntimeException('Backup manifest integrity metadata is invalid.');
+                }
+
+                $dumpStream = $verification->getStream('database/fixxar-group.sql');
+                if (!is_resource($dumpStream)) throw new RuntimeException('Database dump entry cannot be read.');
+                $hashContext = hash_init('sha256');
+                $verifiedDumpBytes = 0;
+                while (!feof($dumpStream)) {
+                    $chunk = fread($dumpStream, 1048576);
+                    if ($chunk === false || ($chunk === '' && !feof($dumpStream))) {
+                        fclose($dumpStream);
+                        throw new RuntimeException('Unable to verify database dump entry.');
+                    }
+                    $verifiedDumpBytes += strlen($chunk);
+                    hash_update($hashContext, $chunk);
+                }
+                if (!fclose($dumpStream)) throw new RuntimeException('Unable to close database dump verification stream.');
+                $verifiedDumpSha256 = hash_final($hashContext);
+                if ($verifiedDumpBytes !== (int)$dumpBytes || !hash_equals($dumpSha256, $verifiedDumpSha256)) {
+                    throw new RuntimeException('Database dump ZIP content failed SHA-256 verification.');
+                }
+                if (!$verification->close()) throw new RuntimeException('Unable to close verified backup archive.');
+            } catch (Throwable $verificationError) {
+                $verification->close();
+                throw $verificationError;
+            }
         } catch (Throwable $backupError) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             if (is_resource($sql)) fclose($sql);
