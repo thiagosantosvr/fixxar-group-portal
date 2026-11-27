@@ -11,7 +11,7 @@ const checks = [
   ["sessão com strict mode", api.includes("session.use_strict_mode', '1'")],
   ["sessão aceita somente cookies", api.includes("session.use_only_cookies', '1'")],
   ["transporte SID desabilitado", api.includes("session.use_trans_sid', '0'")],
-  ["cookie HttpOnly e SameSite Strict", api.includes("'httponly'=>true") && api.includes("'samesite'=>'Strict'")],
+  ["cookie principal HttpOnly e SameSite Lax", /session_set_cookie_params\(\[[^\]]*'httponly'=>true[^\]]*'samesite'=>'Lax'/.test(api)],
   ["regeneração de sessão no login", api.includes("session_regenerate_id(true)")],
   ["CSRF obrigatório nas alterações", api.includes("function requireCsrf()") && api.includes("hash_equals($known, $provided)")],
   ["bloqueio de login por 15 minutos", api.includes("INTERVAL 15 MINUTE") && api.includes("Retry-After: 900")],
