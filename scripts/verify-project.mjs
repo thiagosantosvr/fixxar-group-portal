@@ -67,6 +67,10 @@ const requirements = [
   ["backup inclui dump SQL e tabelas", api.includes("SHOW FULL TABLES") && api.includes("SHOW CREATE TABLE") && api.includes("database/fixxar-group.sql")],
   ["backup inclui arquivos do site e mídia", api.includes("RecursiveDirectoryIterator") && api.includes("server/storage/media/")],
   ["backup exclui configuração e instalador", api.includes("server/config.php") && api.includes("server/instalar-admin.php") && api.includes("BACKUP-MANIFEST.json")],
+  ["dump SQL detecta gravações incompletas", api.includes("function writeAll") && api.includes("writeAll($sql,") && !api.includes("fwrite($sql,")],
+  ["manifesto registra tamanho e SHA-256 do SQL", api.includes("'bytes' => $dumpBytes") && api.includes("'sha256' => $dumpSha256")],
+  ["ZIP reabre com verificação de consistência", api.includes("ZipArchive::CHECKCONS")],
+  ["SQL dentro do ZIP é lido e conferido por SHA-256", api.includes("getStream('database/fixxar-group.sql')") && api.includes("hash_update($hashContext, $chunk)") && api.includes("hash_equals($dumpSha256, $verifiedDumpSha256)")],
   ["universos em desenvolvimento sem URL publicada", developmentEntries.length === 5 && developmentEntries.every((entry) => !/\burl:/.test(entry))]
 ];
 
